@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // API Configuration
+    const API_BASE_URL = 'https://api.ysinghc.me/v1';
+    
     // User Type Selector
     const userTypeButtons = document.querySelectorAll('.user-type-btn');
     const patientLink = document.querySelector('.patient-link');
@@ -54,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Form Validation and Submission
     if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
+        loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const email = document.getElementById('email').value;
@@ -75,34 +78,63 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // In a real application, you would send this data to the server
-            // For demonstration, we'll simulate login and redirect
-            
             // Show loading state
             const submitButton = loginForm.querySelector('button[type="submit"]');
             const originalText = submitButton.textContent;
             submitButton.textContent = 'Signing in...';
             submitButton.disabled = true;
             
-            // Simulate API call with timeout
-            setTimeout(function() {
-                // Store user info in sessionStorage or localStorage based on remember me
+            try {
+                // Make API call to login
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password,
+                        userType
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'Login failed. Please check your credentials.');
+                }
+                
+                // Store auth token in localStorage
+                localStorage.setItem('authToken', data.token);
+                
+                // Store user info
                 const storage = rememberMe ? localStorage : sessionStorage;
                 const userInfo = {
                     email: email,
                     userType: userType,
+                    userId: data.user._id,
+                    name: data.user.name,
+                    healthId: data.user.healthId,
                     isLoggedIn: true
                 };
                 
                 storage.setItem('userInfo', JSON.stringify(userInfo));
                 
-                // Redirect to appropriate dashboard
-                redirectToDashboard(userType);
+                // Show success message
+                showMessage('Login successful! Redirecting...', 'success');
                 
-                // Reset button state (though page will redirect)
+                // Redirect to appropriate dashboard
+                setTimeout(() => {
+                    redirectToDashboard(userType);
+                }, 1000);
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessage(error.message || 'Login failed. Please try again.', 'error');
+                
+                // Reset button state
                 submitButton.textContent = originalText;
                 submitButton.disabled = false;
-            }, 1500); // 1.5 seconds delay to simulate server request
+            }
         });
     }
     
@@ -123,7 +155,36 @@ document.addEventListener('DOMContentLoaded', function() {
         forgotPasswordLink.addEventListener('click', function(e) {
             e.preventDefault();
             // In a real application, this would show a password reset form or redirect to a reset page
-            showMessage('Password reset feature coming soon', 'info');
+            const email = document.getElementById('email').value;
+            
+            if (!email) {
+                showMessage('Please enter your email address first', 'error');
+                return;
+            }
+            
+            // Show loading/pending message
+            showMessage('Processing your password reset request...', 'info');
+            
+            // Make API call to request password reset
+            fetch(`${API_BASE_URL}/auth/forgot-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Password reset email sent. Please check your inbox.', 'success');
+                } else {
+                    showMessage(data.message || 'Failed to send reset email. Please try again.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Password reset error:', error);
+                showMessage('Failed to process reset request. Please try again later.', 'error');
+            });
         });
     }
     
@@ -231,11 +292,33 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check if user is already logged in
     function checkLoginStatus() {
+        const authToken = localStorage.getItem('authToken');
         const userInfo = JSON.parse(localStorage.getItem('userInfo') || sessionStorage.getItem('userInfo') || '{}');
         
-        if (userInfo.isLoggedIn) {
-            // User is already logged in, redirect to their dashboard
-            redirectToDashboard(userInfo.userType);
+        if (authToken && userInfo.isLoggedIn) {
+            // Verify token validity with the server
+            fetch(`${API_BASE_URL}/auth/verify-token`, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Token is valid, redirect to dashboard
+                    redirectToDashboard(userInfo.userType);
+                } else {
+                    // Token is invalid, clear storage
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('userInfo');
+                    sessionStorage.removeItem('userInfo');
+                }
+            })
+            .catch(error => {
+                console.error('Token verification error:', error);
+                // On network error, we'll still try to use the cached session
+                // This allows offline login if previously logged in
+                redirectToDashboard(userInfo.userType);
+            });
         }
     }
     
