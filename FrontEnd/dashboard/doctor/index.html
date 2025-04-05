@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard - HealthConnect</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <a href="../../index.html" class="logo">
+                    <i class="fas fa-heartbeat"></i>
+                    <span>HealthConnect</span>
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="active">
+                        <a href="#overview">
+                            <i class="fas fa-home"></i>
+                            <span>Overview</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#appointments">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Appointments</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#patients">
+                            <i class="fas fa-user-injured"></i>
+                            <span>Patients</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#prescriptions">
+                            <i class="fas fa-prescription-bottle-alt"></i>
+                            <span>Prescriptions</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#reports">
+                            <i class="fas fa-file-medical"></i>
+                            <span>Reports</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#schedule">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Schedule</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#settings">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <button class="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>Doctor Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search patients, appointments...">
+                    </div>
+                    <div class="notifications">
+                        <button class="notification-btn">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge">3</span>
+                        </button>
+                    </div>
+                    <div class="user-profile">
+                        <img src="https://ui-avatars.com/api/?name=Dr.+Sarah+Johnson" alt="Doctor">
+                        <div class="user-info">
+                            <span class="user-name">Dr. Sarah Johnson</span>
+                            <span class="user-role">General Physician</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Overview Section -->
+                <section id="overview" class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Today's Overview</h2>
+                        <div class="date-picker">
+                            <i class="fas fa-calendar"></i>
+                            <span>April 4, 2024</span>
+                        </div>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Appointments</h3>
+                                <p class="stat-value">8</p>
+                                <p class="stat-change">2 completed</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-user-injured"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Patients</h3>
+                                <p class="stat-value">6</p>
+                                <p class="stat-change">2 new patients</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-prescription-bottle-alt"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Prescriptions</h3>
+                                <p class="stat-value">4</p>
+                                <p class="stat-change">All processed</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Next Patient</h3>
+                                <p class="stat-value">10:30 AM</p>
+                                <p class="stat-change">John Doe</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Appointments Section -->
+                <section id="appointments" class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Today's Appointments</h2>
+                        <button class="btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Add Appointment
+                        </button>
+                    </div>
+                    <div class="appointments-grid">
+                        <div class="appointment-card">
+                            <div class="appointment-header">
+                                <h3>John Doe</h3>
+                                <span class="status upcoming">Upcoming</span>
+                            </div>
+                            <div class="appointment-details">
+                                <p><i class="fas fa-clock"></i> 10:30 AM - 11:00 AM</p>
+                                <p><i class="fas fa-stethoscope"></i> General Checkup</p>
+                                <p><i class="fas fa-notes-medical"></i> Follow-up visit</p>
+                            </div>
+                            <div class="appointment-actions">
+                                <button class="btn-outline">View History</button>
+                                <button class="btn-outline">Start Consultation</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Patients Section -->
+                <section id="patients" class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Recent Patients</h2>
+                        <button class="btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Add Patient
+                        </button>
+                    </div>
+                    <div class="patients-grid">
+                        <div class="patient-card">
+                            <div class="patient-header">
+                                <h3>John Doe</h3>
+                                <span class="status active">Active</span>
+                            </div>
+                            <div class="patient-details">
+                                <p><i class="fas fa-id-card"></i> ID: P12345</p>
+                                <p><i class="fas fa-phone"></i> (555) 123-4567</p>
+                                <p><i class="fas fa-envelope"></i> john.doe@email.com</p>
+                            </div>
+                            <div class="patient-actions">
+                                <button class="btn-outline">View Profile</button>
+                                <button class="btn-outline">Medical History</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Prescriptions Section -->
+                <section id="prescriptions" class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Recent Prescriptions</h2>
+                        <button class="btn-primary">
+                            <i class="fas fa-plus"></i>
+                            New Prescription
+                        </button>
+                    </div>
+                    <div class="prescriptions-grid">
+                        <div class="prescription-card">
+                            <div class="prescription-header">
+                                <h3>Atorvastatin</h3>
+                                <span class="status active">Active</span>
+                            </div>
+                            <div class="prescription-details">
+                                <p><i class="fas fa-user-injured"></i> John Doe</p>
+                                <p><i class="fas fa-calendar"></i> March 1, 2024</p>
+                                <p><i class="fas fa-clock"></i> Take 1 tablet daily at night</p>
+                            </div>
+                            <div class="prescription-actions">
+                                <button class="btn-outline">View Details</button>
+                                <button class="btn-outline">Edit</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Reports Section -->
+                <section id="reports" class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Medical Reports</h2>
+                        <button class="btn-primary">
+                            <i class="fas fa-plus"></i>
+                            New Report
+                        </button>
+                    </div>
+                    <div class="reports-grid">
+                        <div class="report-card">
+                            <div class="report-header">
+                                <h3>Blood Test Results</h3>
+                                <span class="status completed">Completed</span>
+                            </div>
+                            <div class="report-details">
+                                <p><i class="fas fa-user-injured"></i> John Doe</p>
+                                <p><i class="fas fa-calendar"></i> March 15, 2024</p>
+                                <p><i class="fas fa-file-medical"></i> Hematology Report</p>
+                            </div>
+                            <div class="report-actions">
+                                <button class="btn-outline">View Report</button>
+                                <button class="btn-outline">Share</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Schedule Section -->
+                <section id="schedule" class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Weekly Schedule</h2>
+                        <button class="btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Add Availability
+                        </button>
+                    </div>
+                    <div class="schedule-grid">
+                        <div class="schedule-card">
+                            <div class="schedule-header">
+                                <h3>Monday, April 8</h3>
+                                <span class="status available">Available</span>
+                            </div>
+                            <div class="schedule-details">
+                                <p><i class="fas fa-clock"></i> 9:00 AM - 5:00 PM</p>
+                                <p><i class="fas fa-calendar-check"></i> 6 appointments</p>
+                                <p><i class="fas fa-hospital"></i> City General Hospital</p>
+                            </div>
+                            <div class="schedule-actions">
+                                <button class="btn-outline">View Appointments</button>
+                                <button class="btn-outline">Edit Schedule</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Panel -->
+    <div class="notification-panel">
+        <div class="notification-header">
+            <h3>Notifications</h3>
+            <button class="btn-icon">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="notifications-list">
+            <!-- Notifications will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="main.js"></script>
+</body>
+</html> 

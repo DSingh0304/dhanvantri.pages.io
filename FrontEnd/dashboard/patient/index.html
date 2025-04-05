@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard - HealthConnect</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <a href="../../index.html" class="logo">
+                    <i class="fas fa-heartbeat"></i>
+                    <span>HealthConnect</span>
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="active">
+                        <a href="#overview">
+                            <i class="fas fa-home"></i>
+                            <span>Overview</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#medical-history">
+                            <i class="fas fa-file-medical"></i>
+                            <span>Medical History</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#appointments">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Appointments</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#prescriptions">
+                            <i class="fas fa-prescription-bottle-alt"></i>
+                            <span>Prescriptions</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#treatment-plans">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Treatment Plans</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#reminders">
+                            <i class="fas fa-bell"></i>
+                            <span>Reminders</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#settings">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <button class="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>Patient Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search...">
+                    </div>
+                    <div class="notifications">
+                        <button class="notification-btn">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge">3</span>
+                        </button>
+                    </div>
+                    <div class="user-profile">
+                        <img src="https://ui-avatars.com/api/?name=John+Doe" alt="Patient">
+                        <div class="user-info">
+                            <span class="user-name">John Doe</span>
+                            <span class="user-role">Patient</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Overview Section -->
+                <section id="overview" class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Health Overview</h2>
+                        <div class="date-picker">
+                            <i class="fas fa-calendar"></i>
+                            <span>April 2024</span>
+                        </div>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-heartbeat"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Heart Rate</h3>
+                                <p class="stat-value">72 bpm</p>
+                                <p class="stat-change">Normal</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-weight"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Weight</h3>
+                                <p class="stat-value">75 kg</p>
+                                <p class="stat-change">-2 kg this month</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-pills"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Active Medications</h3>
+                                <p class="stat-value">3</p>
+                                <p class="stat-change">All taken today</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Next Appointment</h3>
+                                <p class="stat-value">Tomorrow</p>
+                                <p class="stat-change">10:00 AM</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Medical History Section -->
+                <section id="medical-history" class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Medical History</h2>
+                        <button class="btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Add Record
+                        </button>
+                    </div>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-date">March 15, 2024</div>
+                            <div class="timeline-content">
+                                <h3>Annual Checkup</h3>
+                                <p>Dr. Sarah Johnson - General Physician</p>
+                                <p>All vitals normal. Recommended regular exercise and balanced diet.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">February 10, 2024</div>
+                            <div class="timeline-content">
+                                <h3>Blood Test Results</h3>
+                                <p>Dr. Michael Chen - Hematologist</p>
+                                <p>Cholesterol levels slightly elevated. Prescribed dietary changes.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Appointments Section -->
+                <section id="appointments" class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Upcoming Appointments</h2>
+                        <button class="btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Schedule Appointment
+                        </button>
+                    </div>
+                    <div class="appointments-grid">
+                        <div class="appointment-card">
+                            <div class="appointment-header">
+                                <h3>Dr. Sarah Johnson</h3>
+                                <span class="status upcoming">Upcoming</span>
+                            </div>
+                            <div class="appointment-details">
+                                <p><i class="fas fa-calendar"></i> Tomorrow, 10:00 AM</p>
+                                <p><i class="fas fa-hospital"></i> City General Hospital</p>
+                                <p><i class="fas fa-stethoscope"></i> General Checkup</p>
+                            </div>
+                            <div class="appointment-actions">
+                                <button class="btn-outline">Reschedule</button>
+                                <button class="btn-outline">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Prescriptions Section -->
+                <section id="prescriptions" class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Current Prescriptions</h2>
+                        <button class="btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Request Refill
+                        </button>
+                    </div>
+                    <div class="prescriptions-grid">
+                        <div class="prescription-card">
+                            <div class="prescription-header">
+                                <h3>Atorvastatin</h3>
+                                <span class="status active">Active</span>
+                            </div>
+                            <div class="prescription-details">
+                                <p><i class="fas fa-user-md"></i> Dr. Michael Chen</p>
+                                <p><i class="fas fa-hospital"></i> City General Hospital</p>
+                                <p><i class="fas fa-calendar"></i> Started: March 1, 2024</p>
+                                <p><i class="fas fa-clock"></i> Take 1 tablet daily at night</p>
+                            </div>
+                            <div class="prescription-actions">
+                                <button class="btn-outline">View Details</button>
+                                <button class="btn-outline">Request Refill</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Treatment Plans Section -->
+                <section id="treatment-plans" class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Treatment Plans</h2>
+                        <button class="btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Add Plan
+                        </button>
+                    </div>
+                    <div class="treatment-plans-grid">
+                        <div class="treatment-plan-card">
+                            <div class="plan-header">
+                                <h3>Cardiac Health Plan</h3>
+                                <span class="status ongoing">Ongoing</span>
+                            </div>
+                            <div class="plan-details">
+                                <p><i class="fas fa-user-md"></i> Dr. Sarah Johnson</p>
+                                <p><i class="fas fa-calendar"></i> Started: January 15, 2024</p>
+                                <p><i class="fas fa-check-circle"></i> Progress: 65%</p>
+                            </div>
+                            <div class="plan-progress">
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: 65%"></div>
+                                </div>
+                            </div>
+                            <div class="plan-actions">
+                                <button class="btn-outline">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Reminders Section -->
+                <section id="reminders" class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Reminders</h2>
+                        <button class="btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Add Reminder
+                        </button>
+                    </div>
+                    <div class="reminders-grid">
+                        <div class="reminder-card">
+                            <div class="reminder-header">
+                                <h3>Take Medication</h3>
+                                <span class="status pending">Pending</span>
+                            </div>
+                            <div class="reminder-details">
+                                <p><i class="fas fa-clock"></i> Today, 8:00 PM</p>
+                                <p><i class="fas fa-pills"></i> Atorvastatin - 1 tablet</p>
+                            </div>
+                            <div class="reminder-actions">
+                                <button class="btn-outline">Mark as Complete</button>
+                                <button class="btn-outline">Snooze</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Panel -->
+    <div class="notification-panel">
+        <div class="notification-header">
+            <h3>Notifications</h3>
+            <button class="btn-icon">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="notifications-list">
+            <!-- Notifications will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="main.js"></script>
+</body>
+</html> 
