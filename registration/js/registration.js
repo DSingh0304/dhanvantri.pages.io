@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // API Configuration
+    const API_BASE_URL = 'https://api.ysinghc.me/api/v1';
+    
     // Form steps navigation
     const formSteps = document.querySelectorAll('.form-step');
     const progressSteps = document.querySelectorAll('.progress-step');
@@ -323,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Form submission
     if (form) {
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             // Validate the final step
@@ -336,14 +339,82 @@ document.addEventListener('DOMContentLoaded', function() {
             submitButton.disabled = true;
             submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
             
-            // Simulate form submission
-            setTimeout(() => {
-                // Here you would typically send the form data to the server
+            try {
+                // Gather all form data
+                const formData = {
+                    // Account Information
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value,
+                    userType: 'patient',
+                    name: document.getElementById('fullName').value,
+                    
+                    // Personal Information
+                    phone: document.getElementById('phone').value,
+                    dateOfBirth: document.getElementById('dob').value,
+                    gender: document.querySelector('input[name="gender"]:checked').value,
+                    bloodType: document.getElementById('bloodType').value,
+                    
+                    // Address
+                    address: {
+                        street: document.getElementById('street').value,
+                        city: document.getElementById('city').value,
+                        state: document.getElementById('state').value,
+                        pincode: document.getElementById('pincode').value,
+                        country: document.getElementById('country').value
+                    },
+                    
+                    // Medical History
+                    medicalHistory: {
+                        allergies: document.querySelector('input[name="hasAllergies"]:checked').value === 'yes' 
+                            ? document.getElementById('allergies').value.split(',').map(item => item.trim())
+                            : [],
+                        conditions: document.querySelector('input[name="hasConditions"]:checked').value === 'yes'
+                            ? document.getElementById('conditions').value.split(',').map(item => item.trim())
+                            : [],
+                        medications: document.querySelector('input[name="hasMedications"]:checked').value === 'yes'
+                            ? document.getElementById('medications').value.split(',').map(item => item.trim())
+                            : [],
+                        familyHistory: document.getElementById('familyHistory').value
+                    },
+                    
+                    // Emergency Contact
+                    emergencyContact: {
+                        name: document.getElementById('emergencyName').value,
+                        phone: document.getElementById('emergencyPhone').value,
+                        relationship: document.getElementById('emergencyRelationship').value
+                    }
+                };
                 
-                // Redirect to success page or show success message
+                // Make API call to register user
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'Registration failed. Please try again.');
+                }
+                
+                // Show success message
                 alert('Registration successful! You will be redirected to the login page.');
+                
+                // Redirect to login page
                 window.location.href = '../login/index.html';
-            }, 2000);
+            } catch (error) {
+                console.error('Registration error:', error);
+                
+                // Show error message
+                alert(`Registration failed: ${error.message}`);
+                
+                // Reset button state
+                submitButton.disabled = false;
+                submitButton.innerHTML = 'Create Account';
+            }
         });
     }
     

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Registration | Dhanvantri Healthcare</title>
+    <title>Doctor Registration | Dhanvantri Healthcare</title>
     <link rel="stylesheet" href="registration.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -19,8 +19,8 @@
         
         <div class="registration-section">
             <div class="registration-header">
-                <h2>Patient Registration</h2>
-                <p>Join Dhanvantri Healthcare - Create your personal health account</p>
+                <h2>Doctor Registration</h2>
+                <p>Join Dhanvantri Healthcare - Create your professional doctor account</p>
                 <div class="registration-progress">
                     <div class="progress-step active" data-step="1">1</div>
                     <div class="progress-step" data-step="2">2</div>
@@ -29,14 +29,14 @@
                 </div>
             </div>
             
-            <form id="patientRegistrationForm">
+            <form id="doctorRegistrationForm">
                 <!-- Step 1: Account Information -->
                 <div class="form-step active" data-step="1">
                     <h3>Account Information</h3>
                     <div class="form-group">
                         <label for="fullName">Full Name</label>
                         <div class="input-with-icon">
-                            <i class="fas fa-user"></i>
+                            <i class="fas fa-user-md"></i>
                             <input type="text" id="fullName" name="fullName" placeholder="Enter your full name" required>
                         </div>
                     </div>
@@ -116,22 +116,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="bloodType">Blood Type</label>
-                        <select id="bloodType" name="bloodType" required>
-                            <option value="">Select blood type</option>
-                            <option value="A+">A+</option>
-                            <option value="A-">A-</option>
-                            <option value="B+">B+</option>
-                            <option value="B-">B-</option>
-                            <option value="AB+">AB+</option>
-                            <option value="AB-">AB-</option>
-                            <option value="O+">O+</option>
-                            <option value="O-">O-</option>
-                            <option value="unknown">I don't know</option>
-                        </select>
-                    </div>
                     
                     <h4>Address</h4>
                     <div class="form-group">
@@ -169,50 +153,87 @@
                     </div>
                 </div>
                 
-                <!-- Step 3: Medical History -->
+                <!-- Step 3: Professional Information -->
                 <div class="form-step" data-step="3">
-                    <h3>Medical History</h3>
-                    <p class="section-note">This information helps doctors provide better care</p>
+                    <h3>Professional Information</h3>
+                    <p class="section-note">Details about your medical practice and qualifications</p>
                     
                     <div class="form-group">
-                        <label for="height">Height (cm)</label>
-                        <input type="number" id="height" name="height" placeholder="Enter your height in centimeters" min="50" max="250">
+                        <label for="medicalRegistrationNumber">Medical Registration Number</label>
+                        <input type="text" id="medicalRegistrationNumber" name="medicalRegistrationNumber" placeholder="Enter your MCI/State Medical Council registration number" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="weight">Weight (kg)</label>
-                        <input type="number" id="weight" name="weight" placeholder="Enter your weight in kilograms" min="1" max="500">
+                        <label for="medicalCouncil">Medical Council</label>
+                        <select id="medicalCouncil" name="medicalCouncil" required>
+                            <option value="">Select registration council</option>
+                            <option value="MCI">Medical Council of India (MCI)</option>
+                            <option value="Andhra">Andhra Pradesh Medical Council</option>
+                            <option value="Assam">Assam Medical Council</option>
+                            <option value="Bihar">Bihar Medical Council</option>
+                            <option value="Delhi">Delhi Medical Council</option>
+                            <option value="Gujarat">Gujarat Medical Council</option>
+                            <option value="Karnataka">Karnataka Medical Council</option>
+                            <option value="Kerala">Kerala Medical Council</option>
+                            <option value="Maharashtra">Maharashtra Medical Council</option>
+                            <option value="TamilNadu">Tamil Nadu Medical Council</option>
+                            <option value="UP">Uttar Pradesh Medical Council</option>
+                            <option value="WestBengal">West Bengal Medical Council</option>
+                            <option value="other">Other State Medical Council</option>
+                        </select>
                     </div>
                     
                     <div class="form-group">
-                        <label for="allergies">Allergies</label>
-                        <textarea id="allergies" name="allergies" placeholder="List any allergies you have (food, medication, etc.) or type 'None' if none"></textarea>
+                        <label for="otherCouncil" id="otherCouncilLabel" class="hidden">Specify Medical Council</label>
+                        <input type="text" id="otherCouncil" name="otherCouncil" placeholder="Enter medical council name" class="hidden">
                     </div>
                     
                     <div class="form-group">
-                        <label for="preExistingConditions">Pre-existing Medical Conditions</label>
-                        <textarea id="preExistingConditions" name="preExistingConditions" placeholder="List any chronic conditions, past surgeries, or other medical history, or type 'None' if none"></textarea>
+                        <label for="specialization">Primary Specialization</label>
+                        <select id="specialization" name="specialization" required>
+                            <option value="">Select specialization</option>
+                            <option value="Cardiology">Cardiology</option>
+                            <option value="Dermatology">Dermatology</option>
+                            <option value="Endocrinology">Endocrinology</option>
+                            <option value="Gastroenterology">Gastroenterology</option>
+                            <option value="General Medicine">General Medicine</option>
+                            <option value="Neurology">Neurology</option>
+                            <option value="Obstetrics and Gynecology">Obstetrics and Gynecology</option>
+                            <option value="Oncology">Oncology</option>
+                            <option value="Ophthalmology">Ophthalmology</option>
+                            <option value="Orthopedics">Orthopedics</option>
+                            <option value="Pediatrics">Pediatrics</option>
+                            <option value="Psychiatry">Psychiatry</option>
+                            <option value="Pulmonology">Pulmonology</option>
+                            <option value="Radiology">Radiology</option>
+                            <option value="Urology">Urology</option>
+                            <option value="other">Other</option>
+                        </select>
                     </div>
                     
                     <div class="form-group">
-                        <label for="currentMedications">Current Medications</label>
-                        <textarea id="currentMedications" name="currentMedications" placeholder="List any medications you're currently taking, or type 'None' if none"></textarea>
-                    </div>
-                    
-                    <h4>Emergency Contact</h4>
-                    <div class="form-group">
-                        <label for="emergencyName">Emergency Contact Name</label>
-                        <input type="text" id="emergencyName" name="emergencyName" placeholder="Name of your emergency contact" required>
+                        <label for="otherSpecialization" id="otherSpecializationLabel" class="hidden">Specify Specialization</label>
+                        <input type="text" id="otherSpecialization" name="otherSpecialization" placeholder="Enter specialization" class="hidden">
                     </div>
                     
                     <div class="form-group">
-                        <label for="emergencyRelation">Relationship</label>
-                        <input type="text" id="emergencyRelation" name="emergencyRelation" placeholder="Relation to emergency contact" required>
+                        <label for="medicalQualifications">Medical Qualifications</label>
+                        <textarea id="medicalQualifications" name="medicalQualifications" placeholder="Enter your medical qualifications (e.g., MBBS - AIIMS 2010, MD Internal Medicine - PGIMER 2015)" required></textarea>
                     </div>
                     
                     <div class="form-group">
-                        <label for="emergencyPhone">Emergency Contact Phone</label>
-                        <input type="tel" id="emergencyPhone" name="emergencyPhone" placeholder="Emergency contact phone number" required>
+                        <label for="yearsOfExperience">Years of Experience</label>
+                        <input type="number" id="yearsOfExperience" name="yearsOfExperience" min="0" placeholder="Enter years of experience" required>
+                    </div>
+                    
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="hospitalAffiliation" name="hospitalAffiliation">
+                        <label for="hospitalAffiliation">I am affiliated with a hospital registered on Dhanvantri</label>
+                    </div>
+                    
+                    <div class="form-group" id="hospitalIdGroup">
+                        <label for="hospitalId">Hospital ID</label>
+                        <input type="text" id="hospitalId" name="hospitalId" placeholder="Enter hospital's Dhanvantri ID">
                     </div>
                     
                     <div class="form-buttons">
@@ -224,95 +245,46 @@
                 <!-- Step 4: Verify & Submit -->
                 <div class="form-step" data-step="4">
                     <h3>Verify & Submit</h3>
-                    <p class="section-note">Please verify your identity to complete registration</p>
+                    <p class="section-note">Please verify your credentials to complete registration</p>
                     
                     <div class="form-group">
-                        <label>Verification Method</label>
-                        <div class="verification-options">
-                            <div class="verification-option">
-                                <input type="radio" id="govtIdVerification" name="verificationType" value="govtId" checked>
-                                <label for="govtIdVerification">
-                                    <div class="option-icon"><i class="fas fa-id-card"></i></div>
-                                    <div class="option-details">
-                                        <h4>Government ID</h4>
-                                        <p>Verify using your Aadhar, PAN, or other government ID</p>
-                                    </div>
-                                </label>
-                            </div>
-                            
-                            <div class="verification-option">
-                                <input type="radio" id="mobileVerification" name="verificationType" value="mobile">
-                                <label for="mobileVerification">
-                                    <div class="option-icon"><i class="fas fa-mobile-alt"></i></div>
-                                    <div class="option-details">
-                                        <h4>Mobile Number</h4>
-                                        <p>Verify using OTP sent to your registered mobile number</p>
-                                    </div>
-                                </label>
+                        <label>Upload Medical Registration Certificate</label>
+                        <div class="file-upload">
+                            <input type="file" id="registrationCertificate" name="registrationCertificate" accept="image/*,.pdf" required>
+                            <div class="upload-placeholder">
+                                <i class="fas fa-upload"></i>
+                                <span>Click to select file or drag and drop</span>
                             </div>
                         </div>
+                        <p class="file-note">Supported formats: JPG, PNG, PDF (Max 5MB)</p>
                     </div>
                     
-                    <!-- Government ID Verification (shown by default) -->
-                    <div id="govtIdVerificationFields">
-                        <div class="form-group">
-                            <label for="idType">ID Type</label>
-                            <select id="idType" name="idType">
-                                <option value="aadhar">Aadhar Card</option>
-                                <option value="pan">PAN Card</option>
-                                <option value="passport">Passport</option>
-                                <option value="voterID">Voter ID</option>
-                                <option value="drivingLicense">Driving License</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="idNumber">ID Number</label>
-                            <input type="text" id="idNumber" name="idNumber" placeholder="Enter your ID number">
-                        </div>
-                    </div>
-                    
-                    <!-- Mobile Verification (hidden by default) -->
-                    <div id="mobileVerificationFields" class="hidden">
-                        <div class="form-group">
-                            <label for="mobileVerifyNumber">Mobile Number</label>
-                            <div class="input-with-button">
-                                <input type="tel" id="mobileVerifyNumber" name="mobileVerifyNumber" placeholder="Confirm your mobile number" readonly>
-                                <button type="button" class="send-otp-button">Send OTP</button>
+                    <div class="form-group">
+                        <label>Upload Identity Proof</label>
+                        <div class="file-upload">
+                            <input type="file" id="identityProof" name="identityProof" accept="image/*,.pdf" required>
+                            <div class="upload-placeholder">
+                                <i class="fas fa-upload"></i>
+                                <span>Click to select file or drag and drop</span>
                             </div>
                         </div>
-                        
-                        <div class="form-group otp-group hidden">
-                            <label>Enter OTP</label>
-                            <div class="otp-inputs">
-                                <input type="text" class="otp-input" maxlength="1" data-index="1">
-                                <input type="text" class="otp-input" maxlength="1" data-index="2">
-                                <input type="text" class="otp-input" maxlength="1" data-index="3">
-                                <input type="text" class="otp-input" maxlength="1" data-index="4">
-                                <input type="text" class="otp-input" maxlength="1" data-index="5">
-                                <input type="text" class="otp-input" maxlength="1" data-index="6">
-                            </div>
-                            <div class="otp-timer">
-                                <span>Resend OTP in <span id="otpTimer">60</span> seconds</span>
-                            </div>
-                            <button type="button" class="verify-otp-button">Verify OTP</button>
-                        </div>
+                        <p class="file-note">Upload government-issued ID (Aadhar, PAN, Passport, etc.)</p>
                     </div>
                     
                     <div class="form-group checkbox-group consent-checkboxes">
                         <div class="consent-item">
-                            <input type="checkbox" id="consentMedicalData" name="consentMedicalData" required>
-                            <label for="consentMedicalData">I consent to the storage and processing of my medical information for healthcare purposes</label>
+                            <input type="checkbox" id="profileConsent" name="profileConsent" required>
+                            <label for="profileConsent">I consent to my professional profile being visible to patients on the platform</label>
                         </div>
                         
                         <div class="consent-item">
-                            <input type="checkbox" id="consentContact" name="consentContact" required>
-                            <label for="consentContact">I agree to receive important updates about my healthcare via email and SMS</label>
+                            <input type="checkbox" id="dataConsent" name="dataConsent" required>
+                            <label for="dataConsent">I consent to the storage and processing of my information as per the <a href="#">Privacy Policy</a></label>
                         </div>
                         
                         <div class="consent-item">
-                            <input type="checkbox" id="consentAccuracy" name="consentAccuracy" required>
-                            <label for="consentAccuracy">I confirm that all information provided is accurate to the best of my knowledge</label>
+                            <input type="checkbox" id="practiceConsent" name="practiceConsent" required>
+                            <label for="practiceConsent">I confirm that I am licensed to practice medicine and all information provided is accurate</label>
                         </div>
                     </div>
                     
@@ -329,6 +301,6 @@
         </div>
     </div>
     
-    <script src="js/patient-registration.js"></script>
+    <script src="js/doctor-registration.js"></script>
 </body>
 </html> 
