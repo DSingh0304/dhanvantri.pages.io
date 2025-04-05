@@ -70,19 +70,6 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" class="tab-link" data-target="messages-page">
-                            <i class="fas fa-envelope"></i>
-                            <span>Messages</span>
-                            <span class="menu-badge">3</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="tab-link" data-target="earnings-page">
-                            <i class="fas fa-rupee-sign"></i>
-                            <span>Earnings</span>
-                        </a>
-                    </li>
-                    <li>
                         <a href="#" class="tab-link" data-target="settings-page">
                             <i class="fas fa-cog"></i>
                             <span>Settings</span>
@@ -105,16 +92,7 @@
                 <h1 class="page-title">Dashboard</h1>
                 
                 <div class="header-right">
-                    <div class="search-bar">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Search patients, appointments...">
-                    </div>
-                    
                     <div class="header-actions">
-                        <button class="notification-btn">
-                            <i class="fas fa-bell"></i>
-                            <span class="badge">5</span>
-                        </button>
                         <button class="help-btn">
                             <i class="fas fa-question-circle"></i>
                         </button>
@@ -170,17 +148,6 @@
                             <h4>Prescriptions</h4>
                             <div class="stat-value">32</div>
                             <p class="stat-detail">This week</p>
-                        </div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-icon bg-info">
-                            <i class="fas fa-rupee-sign"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h4>Earnings</h4>
-                            <div class="stat-value">₹28,500</div>
-                            <p class="stat-detail">This month</p>
                         </div>
                     </div>
                 </div>
@@ -356,113 +323,6 @@
                         </div>
                     </div>
                 </div>
-                
-                <div class="dashboard-sections">
-                    <!-- Pending Reports -->
-                    <div class="section-card">
-                        <div class="section-header">
-                            <h3>Pending Reports</h3>
-                            <a href="#" class="view-all">View All</a>
-                        </div>
-                        <div class="reports-table-container">
-                            <table class="records-table">
-                                <thead>
-                                    <tr>
-                                        <th>Patient</th>
-                                        <th>Report Type</th>
-                                        <th>Date</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Ravi Kumar</td>
-                                        <td>ECG Report</td>
-                                        <td>Aug 18, 2023</td>
-                                        <td><span class="status-badge pending">Pending Review</span></td>
-                                        <td>
-                                            <button class="btn-icon" onclick="viewReport(201)">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn-icon" onclick="approveReport(201)">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Neha Gupta</td>
-                                        <td>Echocardiogram</td>
-                                        <td>Aug 17, 2023</td>
-                                        <td><span class="status-badge pending">Pending Review</span></td>
-                                        <td>
-                                            <button class="btn-icon" onclick="viewReport(202)">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn-icon" onclick="approveReport(202)">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Arjun Reddy</td>
-                                        <td>Stress Test</td>
-                                        <td>Aug 15, 2023</td>
-                                        <td><span class="status-badge in-progress">In Progress</span></td>
-                                        <td>
-                                            <button class="btn-icon" onclick="viewReport(203)">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn-icon disabled">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    
-                    <!-- Performance -->
-                    <div class="section-card">
-                        <div class="section-header">
-                            <h3>Performance Overview</h3>
-                            <div class="header-controls">
-                                <select class="period-select">
-                                    <option value="week">This Week</option>
-                                    <option value="month" selected>This Month</option>
-                                    <option value="quarter">This Quarter</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="performanceChart"></canvas>
-                        </div>
-                        <div class="performance-metrics">
-                            <div class="metric">
-                                <h4>Patient Satisfaction</h4>
-                                <div class="metric-value">4.8/5</div>
-                                <div class="progress-bar">
-                                    <div class="progress" style="width: 96%"></div>
-                                </div>
-                            </div>
-                            <div class="metric">
-                                <h4>Consultation Time</h4>
-                                <div class="metric-value">18 min avg.</div>
-                                <div class="progress-bar">
-                                    <div class="progress" style="width: 85%"></div>
-                                </div>
-                            </div>
-                            <div class="metric">
-                                <h4>Follow-up Rate</h4>
-                                <div class="metric-value">92%</div>
-                                <div class="progress-bar">
-                                    <div class="progress" style="width: 92%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
             
             <!-- Other Pages (Placeholder for now) -->
@@ -489,16 +349,6 @@
             <div id="schedule-page" class="content-wrapper">
                 <h2 class="section-title">My Schedule</h2>
                 <p class="placeholder-text">Schedule management page content will appear here.</p>
-            </div>
-            
-            <div id="messages-page" class="content-wrapper">
-                <h2 class="section-title">Messages</h2>
-                <p class="placeholder-text">Messages and communication page content will appear here.</p>
-            </div>
-            
-            <div id="earnings-page" class="content-wrapper">
-                <h2 class="section-title">Earnings</h2>
-                <p class="placeholder-text">Earnings and financial information will appear here.</p>
             </div>
             
             <div id="settings-page" class="content-wrapper">
@@ -657,7 +507,6 @@
     </div>
     
     <!-- JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
 </body>
 </html> 

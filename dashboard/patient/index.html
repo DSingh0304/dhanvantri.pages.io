@@ -8,8 +8,6 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js Library -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -73,12 +71,6 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" data-page="emergency-card">
-                            <i class="fas fa-ambulance"></i>
-                            <span>Emergency Card</span>
-                        </a>
-                    </li>
-                    <li>
                         <a href="#" data-page="settings">
                             <i class="fas fa-cog"></i>
                             <span>Settings</span>
@@ -102,70 +94,13 @@
                     <h2 class="page-title">Dashboard</h2>
                 </div>
                 <div class="header-right">
-                    <div class="search-bar">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Search medical records...">
-                    </div>
                     <div class="header-actions">
-                        <button class="notification-btn">
-                            <i class="fas fa-bell"></i>
-                            <span class="badge">3</span>
-                        </button>
                         <button class="help-btn">
                             <i class="fas fa-question-circle"></i>
                         </button>
                     </div>
                 </div>
             </header>
-            
-            <!-- Notification Panel -->
-            <div class="notification-panel dropdown-panel">
-                <div class="panel-header">
-                    <h3>Notifications</h3>
-                    <button class="mark-all-read">Mark all as read</button>
-                </div>
-                <div class="notification-list">
-                    <div class="notification-item unread">
-                        <div class="notification-icon bg-primary">
-                            <i class="fas fa-calendar-check"></i>
-                        </div>
-                        <div class="notification-content">
-                            <p>Your appointment with Dr. Smith has been confirmed</p>
-                            <span class="notification-time">2 hours ago</span>
-                        </div>
-                    </div>
-                    <div class="notification-item unread">
-                        <div class="notification-icon bg-warning">
-                            <i class="fas fa-prescription"></i>
-                        </div>
-                        <div class="notification-content">
-                            <p>New prescription added by Dr. Johnson</p>
-                            <span class="notification-time">Yesterday</span>
-                        </div>
-                    </div>
-                    <div class="notification-item unread">
-                        <div class="notification-icon bg-info">
-                            <i class="fas fa-flask"></i>
-                        </div>
-                        <div class="notification-content">
-                            <p>Your lab results are ready to view</p>
-                            <span class="notification-time">2 days ago</span>
-                        </div>
-                    </div>
-                    <div class="notification-item">
-                        <div class="notification-icon bg-success">
-                            <i class="fas fa-credit-card"></i>
-                        </div>
-                        <div class="notification-content">
-                            <p>Payment for your last visit was processed successfully</p>
-                            <span class="notification-time">1 week ago</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="panel-footer">
-                    <a href="#" class="view-all-link">View all notifications</a>
-                </div>
-            </div>
             
             <!-- Dashboard Overview -->
             <div class="content-wrapper page-active" id="dashboard">
@@ -308,35 +243,6 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- Health Metrics Section -->
-                <div class="section-card health-metrics">
-                    <div class="section-header">
-                        <h3>Health Metrics</h3>
-                        <div class="header-controls">
-                            <select id="timeRangeSelect">
-                                <option value="6m">Last 6 Months</option>
-                                <option value="3m">Last 3 Months</option>
-                                <option value="1m">Last Month</option>
-                                <option value="1w">Last Week</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="chart-grid">
-                        <div class="chart-container">
-                            <h4>Blood Pressure</h4>
-                            <canvas id="bloodPressureChart"></canvas>
-                        </div>
-                        <div class="chart-container">
-                            <h4>Weight</h4>
-                            <canvas id="weightChart"></canvas>
-                        </div>
-                        <div class="chart-container">
-                            <h4>Blood Sugar</h4>
-                            <canvas id="bloodSugarChart"></canvas>
-                        </div>
-                    </div>
-                </div>
             </div>
             
             <!-- Modals -->
@@ -349,22 +255,14 @@
                     <div class="modal-body">
                         <form id="appointmentForm">
                             <div class="form-group">
-                                <label for="specialtySelect">Specialty</label>
-                                <select id="specialtySelect" required>
-                                    <option value="">Select Specialty</option>
-                                    <option value="cardiology">Cardiology</option>
-                                    <option value="dermatology">Dermatology</option>
-                                    <option value="neurology">Neurology</option>
-                                    <option value="orthopedics">Orthopedics</option>
-                                    <option value="pediatrics">Pediatrics</option>
-                                    <option value="psychiatry">Psychiatry</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
                                 <label for="doctorSelect">Doctor</label>
                                 <select id="doctorSelect" required>
                                     <option value="">Select Doctor</option>
-                                    <!-- Will be populated based on specialty -->
+                                    <option value="1">Dr. Robert Smith (Cardiology)</option>
+                                    <option value="2">Dr. Sarah Johnson (Dermatology)</option>
+                                    <option value="3">Dr. Priya Sharma (Gynecology)</option>
+                                    <option value="4">Dr. John Davis (Neurology)</option>
+                                    <option value="5">Dr. Michael Lee (Orthopedics)</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -375,7 +273,18 @@
                                 <label for="appointmentTime">Time</label>
                                 <select id="appointmentTime" required>
                                     <option value="">Select Time</option>
-                                    <!-- Will be populated based on date -->
+                                    <option value="09:00">9:00 AM</option>
+                                    <option value="09:30">9:30 AM</option>
+                                    <option value="10:00">10:00 AM</option>
+                                    <option value="10:30">10:30 AM</option>
+                                    <option value="11:00">11:00 AM</option>
+                                    <option value="11:30">11:30 AM</option>
+                                    <option value="12:00">12:00 PM</option>
+                                    <option value="14:00">2:00 PM</option>
+                                    <option value="14:30">2:30 PM</option>
+                                    <option value="15:00">3:00 PM</option>
+                                    <option value="15:30">3:30 PM</option>
+                                    <option value="16:00">4:00 PM</option>
                                 </select>
                             </div>
                             <div class="form-group">

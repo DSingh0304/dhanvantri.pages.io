@@ -38,11 +38,6 @@
                 <div class="step-number">3</div>
                 <div class="step-label">Medical History</div>
             </div>
-            <div class="progress-line"></div>
-            <div class="progress-step" data-step="4">
-                <div class="step-number">4</div>
-                <div class="step-label">Verification</div>
-            </div>
         </div>
         
         <div class="registration-form-container">
@@ -199,7 +194,7 @@
                     <div class="form-group">
                         <label for="bloodGroup">Blood Group</label>
                         <select id="bloodGroup" name="bloodGroup">
-                            <option value="" disabled selected>Select blood group</option>
+                            <option value="" selected disabled>Select blood group</option>
                             <option value="A+">A+</option>
                             <option value="A-">A-</option>
                             <option value="B+">B+</option>
@@ -208,7 +203,7 @@
                             <option value="AB-">AB-</option>
                             <option value="O+">O+</option>
                             <option value="O-">O-</option>
-                            <option value="unknown">Don't know</option>
+                            <option value="unknown">Unknown</option>
                         </select>
                     </div>
                     
@@ -226,13 +221,17 @@
                         </div>
                     </div>
                     
-                    <div class="form-group allergies-container hidden">
-                        <label for="allergies">List your allergies</label>
-                        <textarea id="allergies" name="allergies" placeholder="e.g., Penicillin, Peanuts, etc."></textarea>
+                    <div class="form-group allergies-group hidden">
+                        <label for="allergies">List Your Allergies</label>
+                        <div class="tags-input-wrapper">
+                            <input type="text" id="allergiesInput" placeholder="Type an allergy and press Enter">
+                            <div class="tags-container" id="allergiesTags"></div>
+                        </div>
+                        <input type="hidden" id="allergies" name="allergies">
                     </div>
                     
                     <div class="form-group">
-                        <label>Do you have any chronic conditions?</label>
+                        <label>Do you have any chronic medical conditions?</label>
                         <div class="radio-group">
                             <div class="radio-option">
                                 <input type="radio" id="conditionsYes" name="hasConditions" value="yes">
@@ -245,131 +244,30 @@
                         </div>
                     </div>
                     
-                    <div class="form-group conditions-container hidden">
-                        <label for="conditions">List your chronic conditions</label>
-                        <textarea id="conditions" name="conditions" placeholder="e.g., Diabetes, Hypertension, etc."></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Are you currently taking any medications?</label>
-                        <div class="radio-group">
-                            <div class="radio-option">
-                                <input type="radio" id="medicationsYes" name="hasMedications" value="yes">
-                                <label for="medicationsYes">Yes</label>
-                            </div>
-                            <div class="radio-option">
-                                <input type="radio" id="medicationsNo" name="hasMedications" value="no" checked>
-                                <label for="medicationsNo">No</label>
-                            </div>
+                    <div class="form-group conditions-group hidden">
+                        <label for="conditions">List Your Medical Conditions</label>
+                        <div class="tags-input-wrapper">
+                            <input type="text" id="conditionsInput" placeholder="Type a condition and press Enter">
+                            <div class="tags-container" id="conditionsTags"></div>
                         </div>
+                        <input type="hidden" id="conditions" name="conditions">
                     </div>
                     
-                    <div class="form-group medications-container hidden">
-                        <label for="medications">List your current medications</label>
-                        <textarea id="medications" name="medications" placeholder="e.g., Insulin, Aspirin, etc."></textarea>
-                    </div>
+                    <h4>Emergency Contact</h4>
                     
                     <div class="form-group">
-                        <label for="emergencyName">Emergency Contact Name</label>
-                        <input type="text" id="emergencyName" name="emergencyName" placeholder="Enter emergency contact name">
+                        <label for="emergencyName">Emergency Contact Name *</label>
+                        <input type="text" id="emergencyName" name="emergencyName" required placeholder="Name of emergency contact">
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="emergencyPhone">Emergency Contact Phone</label>
-                            <input type="tel" id="emergencyPhone" name="emergencyPhone" placeholder="Enter emergency contact phone">
+                            <label for="emergencyRelation">Relationship *</label>
+                            <input type="text" id="emergencyRelation" name="emergencyRelation" required placeholder="Relationship to you">
                         </div>
-                        
                         <div class="form-group">
-                            <label for="emergencyRelation">Relationship</label>
-                            <select id="emergencyRelation" name="emergencyRelation">
-                                <option value="" disabled selected>Select relationship</option>
-                                <option value="spouse">Spouse</option>
-                                <option value="parent">Parent</option>
-                                <option value="child">Child</option>
-                                <option value="sibling">Sibling</option>
-                                <option value="relative">Other Relative</option>
-                                <option value="friend">Friend</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="button-group">
-                        <button type="button" class="btn btn-outline prev-step" data-prev="2">Previous</button>
-                        <button type="button" class="btn btn-primary next-step" data-next="4">Continue</button>
-                    </div>
-                </div>
-                
-                <!-- Step 4: Verification -->
-                <div class="form-step" data-step="4">
-                    <h3>Verification</h3>
-                    <p class="step-description">Please review your information and complete the verification process.</p>
-                    
-                    <div class="verification-info">
-                        <p>To verify your identity and secure your medical data, we require one of the following:</p>
-                        
-                        <div class="verification-options">
-                            <div class="verification-option">
-                                <input type="radio" id="verifyGovt" name="verifyMethod" value="govtId" checked>
-                                <label for="verifyGovt">
-                                    <i class="fas fa-id-card"></i>
-                                    <span>Government ID Verification</span>
-                                </label>
-                                <p>Verify using your Aadhaar or other government ID</p>
-                            </div>
-                            
-                            <div class="verification-option">
-                                <input type="radio" id="verifyMobile" name="verifyMethod" value="mobile">
-                                <label for="verifyMobile">
-                                    <i class="fas fa-mobile-alt"></i>
-                                    <span>Mobile OTP Verification</span>
-                                </label>
-                                <p>Verify using a one-time password sent to your mobile</p>
-                            </div>
-                        </div>
-                        
-                        <div class="govt-verification verification-section">
-                            <div class="form-group">
-                                <label for="idNumber">Government ID Number</label>
-                                <input type="text" id="idNumber" name="idNumber" placeholder="Enter your ID number">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="idUpload">Upload ID Document (Front & Back)</label>
-                                <div class="file-upload">
-                                    <input type="file" id="idUpload" name="idUpload" accept="image/*">
-                                    <div class="upload-placeholder">
-                                        <i class="fas fa-upload"></i>
-                                        <span>Click to select files or drag and drop</span>
-                                    </div>
-                                </div>
-                                <div class="input-hint">Supported formats: JPG, PNG, PDF (Max size: 5MB)</div>
-                            </div>
-                        </div>
-                        
-                        <div class="mobile-verification verification-section hidden">
-                            <div class="form-group">
-                                <label for="verifyPhone">Phone Number</label>
-                                <div class="input-with-icon">
-                                    <i class="fas fa-phone"></i>
-                                    <input type="tel" id="verifyPhone" name="verifyPhone" placeholder="Enter your phone number">
-                                    <button type="button" class="btn btn-sm btn-outline send-otp-btn">Send OTP</button>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group otp-input-group hidden">
-                                <label for="otpCode">Enter OTP</label>
-                                <div class="otp-inputs">
-                                    <input type="text" maxlength="1" class="otp-input" data-index="1">
-                                    <input type="text" maxlength="1" class="otp-input" data-index="2">
-                                    <input type="text" maxlength="1" class="otp-input" data-index="3">
-                                    <input type="text" maxlength="1" class="otp-input" data-index="4">
-                                    <input type="text" maxlength="1" class="otp-input" data-index="5">
-                                    <input type="text" maxlength="1" class="otp-input" data-index="6">
-                                </div>
-                                <input type="hidden" id="otpCode" name="otpCode">
-                                <div class="otp-timer">Resend OTP in <span id="otpTimer">60</span> seconds</div>
-                            </div>
+                            <label for="emergencyPhone">Phone Number *</label>
+                            <input type="tel" id="emergencyPhone" name="emergencyPhone" required placeholder="Emergency contact phone">
                         </div>
                     </div>
                     
@@ -390,7 +288,7 @@
                     </div>
                     
                     <div class="button-group">
-                        <button type="button" class="btn btn-outline prev-step" data-prev="3">Previous</button>
+                        <button type="button" class="btn btn-outline prev-step" data-prev="2">Previous</button>
                         <button type="submit" class="btn btn-primary">Complete Registration</button>
                     </div>
                 </div>
@@ -404,4 +302,5 @@
     
     <script src="js/registration.js"></script>
 </body>
+</html> 
 </html> 
