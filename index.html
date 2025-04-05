@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dhanvantri - Unified Healthcare Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>Dhanvantri</h1>
+                </div>
+                <nav class="main-nav">
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#for-patients">For Patients</a></li>
+                        <li><a href="#for-doctors">For Doctors</a></li>
+                        <li><a href="#for-hospitals">For Hospitals</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </nav>
+                <div class="header-buttons">
+                    <a href="login/" class="btn btn-outline">Login</a>
+                    <a href="registration/patient.html" class="btn btn-primary">Register Now</a>
+                </div>
+                <button class="mobile-menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Unified Healthcare Platform for All</h1>
+                    <p>Dhanvantri connects patients, doctors, and hospitals in one seamless ecosystem. Access your health records, schedule appointments, and consult with top specialists from anywhere.</p>
+                    <div class="hero-buttons">
+                        <a href="registration/patient.html" class="btn btn-primary btn-lg">Get Started</a>
+                        <a href="#how-it-works" class="btn btn-secondary btn-lg">How It Works</a>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="assets/hero-image.png" alt="Dhanvantri Healthcare Platform">
+                </div>
+            </div>
+        </div>
+        <div class="hero-wave">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                <path fill="#ffffff" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,128C960,117,1056,75,1152,64C1248,53,1344,75,1392,85.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <div class="stat-value">10,000+</div>
+                    <div class="stat-label">Registered Doctors</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="fas fa-hospital"></i>
+                    </div>
+                    <div class="stat-value">500+</div>
+                    <div class="stat-label">Partner Hospitals</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-value">1M+</div>
+                    <div class="stat-label">Registered Patients</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="fas fa-stethoscope"></i>
+                    </div>
+                    <div class="stat-value">5M+</div>
+                    <div class="stat-label">Consultations</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Key Features</h2>
+                <p>Discover how Dhanvantri is transforming healthcare delivery</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h3>Appointment Scheduling</h3>
+                    <p>Book appointments with doctors and specialists in just a few clicks, with instant confirmation.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <h3>Telemedicine</h3>
+                    <p>Connect with healthcare professionals through secure video consultations from the comfort of your home.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-medical"></i>
+                    </div>
+                    <h3>Digital Health Records</h3>
+                    <p>Access your complete medical history, prescriptions, and reports in one secure place.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-laptop-medical"></i>
+                    </div>
+                    <h3>Hospital Management</h3>
+                    <p>Streamlined operations for hospitals with patient management, billing, and resource allocation.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-prescription"></i>
+                    </div>
+                    <h3>E-Prescriptions</h3>
+                    <p>Receive digital prescriptions that can be directly sent to pharmacies for medicine delivery.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <h3>Health Monitoring</h3>
+                    <p>Track vital signs and health metrics over time with visual analytics and personalized insights.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2>How It Works</h2>
+                <p>Simple steps to start your healthcare journey with Dhanvantri</p>
+            </div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Create Your Account</h3>
+                        <p>Register on the platform as a patient, doctor, or hospital administrator with a simple verification process.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Complete Your Profile</h3>
+                        <p>Add your medical history, specializations, or hospital details to personalize your experience.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Connect & Collaborate</h3>
+                        <p>Find doctors, schedule appointments, share medical records, and start your healthcare journey.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Manage Healthcare</h3>
+                        <p>Access reports, follow prescriptions, and track your health progress all in one place.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- For Patients Section -->
+    <section id="for-patients" class="for-patients">
+        <div class="container">
+            <div class="section-grid">
+                <div class="section-image">
+                    <img src="assets/patients.png" alt="For Patients">
+                </div>
+                <div class="section-content">
+                    <h2>For Patients</h2>
+                    <p>Take control of your healthcare journey with personalized services designed for your needs.</p>
+                    <ul class="feature-list">
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Find and book appointments with specialists across specialties</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Store and access your medical records securely</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Receive medication reminders and follow-up alerts</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Consult doctors remotely through video calls</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Track health metrics and receive personalized insights</span>
+                        </li>
+                    </ul>
+                    <a href="registration/patient.html" class="btn btn-primary">Register as a Patient</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- For Doctors Section -->
+    <section id="for-doctors" class="for-doctors">
+        <div class="container">
+            <div class="section-grid reverse">
+                <div class="section-image">
+                    <img src="assets/doctors.png" alt="For Doctors">
+                </div>
+                <div class="section-content">
+                    <h2>For Doctors</h2>
+                    <p>Enhance your practice with digital tools designed to improve patient care and streamline operations.</p>
+                    <ul class="feature-list">
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Manage your appointments and schedule efficiently</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Access complete patient history for informed decisions</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Issue digital prescriptions and monitor compliance</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Conduct telemedicine consultations securely</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Track patient outcomes and treatment effectiveness</span>
+                        </li>
+                    </ul>
+                    <a href="registration/doctor.html" class="btn btn-primary">Register as a Doctor</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- For Hospitals Section -->
+    <section id="for-hospitals" class="for-hospitals">
+        <div class="container">
+            <div class="section-grid">
+                <div class="section-image">
+                    <img src="assets/hospitals.png" alt="For Hospitals">
+                </div>
+                <div class="section-content">
+                    <h2>For Hospitals</h2>
+                    <p>Transform your hospital operations with our integrated healthcare management system.</p>
+                    <ul class="feature-list">
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Centralized patient data management system</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Staff scheduling and resource allocation</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Inventory and medicine management</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Billing and insurance claim processing</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Analytics and reporting for operational insights</span>
+                        </li>
+                    </ul>
+                    <a href="registration/hospital.html" class="btn btn-primary">Register Hospital</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <h2>What People Say</h2>
+                <p>Hear from our users how Dhanvantri is changing their healthcare experience</p>
+            </div>
+            <div class="testimonial-slider">
+                <div class="testimonial-item">
+                    <div class="testimonial-content">
+                        <p>"Dhanvantri has made managing my diabetes so much easier. I can track my glucose levels, share them with my doctor, and get timely advice without frequent hospital visits."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="assets/testimonial1.jpg" alt="Rajiv Sharma">
+                        <div>
+                            <h4>Rajiv Sharma</h4>
+                            <p>Patient</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-item">
+                    <div class="testimonial-content">
+                        <p>"As a cardiologist, this platform has transformed my practice. I can review patient data before appointments, conduct virtual follow-ups, and monitor recovery remotely."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="assets/testimonial2.jpg" alt="Dr. Priya Gupta">
+                        <div>
+                            <h4>Dr. Priya Gupta</h4>
+                            <p>Cardiologist</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-item">
+                    <div class="testimonial-content">
+                        <p>"Our hospital has seen a 40% reduction in administrative tasks since implementing Dhanvantri. Patient satisfaction has improved significantly with faster processes."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="assets/testimonial3.jpg" alt="Dr. Sanjay Mehta">
+                        <div>
+                            <h4>Dr. Sanjay Mehta</h4>
+                            <p>Hospital Director</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-controls">
+                <button class="prev-btn"><i class="fas fa-chevron-left"></i></button>
+                <div class="testimonial-dots">
+                    <span class="dot active"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+                <button class="next-btn"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download App Section -->
+    <section class="download-app">
+        <div class="container">
+            <div class="download-content">
+                <div class="download-text">
+                    <h2>Take Healthcare With You</h2>
+                    <p>Download the Dhanvantri mobile app for easy access to all features on the go. Available for iOS and Android devices.</p>
+                    <div class="app-buttons">
+                        <a href="#" class="app-button">
+                            <i class="fab fa-apple"></i>
+                            <span>
+                                <small>Download on the</small>
+                                App Store
+                            </span>
+                        </a>
+                        <a href="#" class="app-button">
+                            <i class="fab fa-google-play"></i>
+                            <span>
+                                <small>GET IT ON</small>
+                                Google Play
+                            </span>
+                        </a>
+                    </div>
+                </div>
+                <div class="download-image">
+                    <img src="assets/app-mockup.png" alt="Dhanvantri Mobile App">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2>Get In Touch</h2>
+                <p>Have questions or need support? Reach out to our team.</p>
+            </div>
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div>
+                            <h3>Address</h3>
+                            <p>123 Healthcare Avenue, Bengaluru, Karnataka, India 560001</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <div>
+                            <h3>Phone</h3>
+                            <p>+91 9876 543 210</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div>
+                            <h3>Email</h3>
+                            <p>info@dhanvantri.com</p>
+                        </div>
+                    </div>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="contact-form">
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <input type="text" id="name" name="name" placeholder="Your Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" id="email" name="email" placeholder="Your Email" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="subject" name="subject" placeholder="Subject" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea id="message" name="message" placeholder="Your Message" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <h3>Dhanvantri</h3>
+                    <p>Transforming healthcare delivery through technology, connecting patients, doctors, and hospitals in one unified platform.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#for-patients">For Patients</a></li>
+                        <li><a href="#for-doctors">For Doctors</a></li>
+                        <li><a href="#for-hospitals">For Hospitals</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Health Blog</a></li>
+                        <li><a href="#">FAQs</a></li>
+                        <li><a href="#">Support Center</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div class="footer-newsletter">
+                    <h4>Newsletter</h4>
+                    <p>Subscribe to our newsletter for the latest updates and health tips.</p>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Your Email Address" required>
+                        <button type="submit" class="btn btn-primary">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 Dhanvantri Healthcare Platform. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <a href="#" class="back-to-top">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html> 

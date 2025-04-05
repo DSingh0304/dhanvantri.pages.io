@@ -1,0 +1,47 @@
+A. Patient Portal (Citizen Access)
+Personalized Dashboard: Shows medical history, upcoming appointments, prescriptions, and treatment plans.
+Access to Reports & Diagnoses: Patients can view standardized medical reports from any hospital or clinic.
+
+B. Emergency & Cross-Hospital Access
+Unique Health ID for Citizens: A digital health ID assigned to each citizen for easy identification.
+
+Emergency Medical Alerts: Allows easy fetch of medical records by healthcare professional by providing govt id as the health id will be seeded with govt ids
+
+Quick Cross-Hospital Transfers: Allow seamless patient transfers between hospitals with full data sharing.
+
+C. Enrollment and awareness about public insurance schemes: allows users to know which public insurance scheme they are eligible for and easy enrollment
+
+## **1. Hospital Dashboard (Admin & Management View)**
+Hospitals need an **aggregated view** of their doctors, patient records, and ongoing medical cases.  
+
+### **A. Key Features**
+1. **Doctor Management Panel**  
+   - List of all doctors in the hospital categorized by specialty.  
+   - Active patient load per doctor (ongoing treatments, pending follow-ups).  
+
+2. **Operational Insights & Reports**  
+   - Hospital-wide treatment trends and analytics.  
+   - Bed occupancy rates  
+   - Medical supply and equipment usage tracking.  
+
+## **2. Doctor Dashboard (Personalized Physician View)**
+Each doctor needs a **customized dashboard** displaying their patients and medical records in an **organized, real-time format**.  
+
+### **A. Key Features**
+1. **My Patients Panel**  
+   - List of active & past patients.  
+   - Filter by status: **New Appointments | Ongoing Treatment | Follow-Ups | Discharged**.  
+   - Quick search by name, unique health ID, or diagnosis.  
+
+2. **Patient Medical History View**  
+   - Single-page view of **entire patient history**, including:  
+     - Diagnoses  
+     - Previous prescriptions & treatments  
+     - Allergies & chronic conditions  
+     - Lab test results & imaging reports  
+3. **Medical Advice & Treatment Orders**  
+   - **E-prescriptions**: Send directly to pharmacies.  
+   - **Lab Test Requests**: Order diagnostics and get results automatically linked to the case file.  
+4. **Appointment & Follow-Up Scheduler**  
+   - Calendar view of patient appointments.  
+   - Automated follow-up reminders for both doctor and patient.

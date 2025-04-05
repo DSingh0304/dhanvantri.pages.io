@@ -1,0 +1,441 @@
+# Dhanvantri Healthcare Platform - System Design
+
+## 1. Technology Stack
+
+### Frontend
+- **Framework**: React.js (lightweight, component-based, widely adopted)
+- **State Management**: Redux for global state, Context API for component state
+- **UI Framework**: Material UI (accessible components, medical-themed customization)
+- **Responsive Design**: Flexbox and CSS Grid with media queries
+- **API Communication**: Axios for HTTP requests with interceptors
+- **Form Handling**: Formik with Yup validation
+
+### Backend
+- **API Framework**: Express.js (Node.js) - lightweight, fast, and flexible
+- **Authentication**: JWT with refresh token mechanism
+- **Database ORM**: Mongoose for MongoDB interaction
+- **API Documentation**: Swagger/OpenAPI
+- **Logging**: Winston for structured logging
+- **Job Scheduling**: Agenda.js for reminders and notifications
+
+### Database
+- **Primary Database**: MongoDB (NoSQL for flexible schema evolution)
+- **Cache Layer**: Redis for session storage and frequent queries
+- **Search Functionality**: MongoDB Atlas Search for medical record searching
+- **File Storage**: MinIO (self-hosted S3-compatible storage) for medical documents
+
+### DevOps
+- **Containerization**: Docker for consistent environments
+- **Orchestration**: Docker Compose for development, Kubernetes for production
+- **CI/CD**: GitHub Actions for automated testing and deployment
+- **Monitoring**: Prometheus and Grafana for system metrics
+- **Error Tracking**: Sentry for real-time error reporting
+
+## 2. System Architecture
+
+```
+                                  +----------------+
+                                  |                |
+                                  |   Client Apps  |
+                                  |                |
+                                  +--------+-------+
+                                           |
+                                           | HTTPS
+                                           v
++----------------+              +----------+---------+            +-----------------+
+|                |              |                    |            |                 |
+|  CDN (Static   +------------->+   API Gateway     +------------>  Authentication |
+|   Assets)      |              |                    |            |   Service       |
+|                |              +------+------+------+            |                 |
++----------------+                     |      |                   +-----------------+
+                                       |      |
+                         +-------------+      +-------------+
+                         |                                  |
+               +---------v---------+              +---------v---------+
+               |                   |              |                   |
+               |  Patient Service  |              |  Doctor Service   |
+               |                   |              |                   |
+               +-------------------+              +-------------------+
+                         |                                  |
+                         |                                  |
+               +---------v---------+              +---------v---------+
+               |                   |              |                   |
+               |  Patient Database |              |  Doctor Database  |
+               |                   |              |                   |
+               +-------------------+              +-------------------+
+                                                           |
+                                                           |
+                                               +-----------v----------+
+                                               |                      |
+                                               |  Hospital Service    |
+                                               |                      |
+                                               +----------------------+
+                                                           |
+                                                           |
+                                               +-----------v----------+
+                                               |                      |
+                                               |  Hospital Database   |
+                                               |                      |
+                                               +----------------------+
+```
+
+### Key Components
+1. **API Gateway**: Central entry point for all API requests, handles routing and basic rate limiting
+2. **Authentication Service**: Manages user registration, login, and token verification
+3. **Patient Service**: Handles patient-specific functionality and data
+4. **Doctor Service**: Manages doctor functionality and patient-doctor relationships
+5. **Hospital Service**: Oversees hospital management and cross-hospital interactions
+6. **Insurance Service**: Interfaces with government insurance systems
+7. **Emergency Access Service**: Specialized service for emergency medical data access
+
+## 3. Database Schema Design
+
+### Users Collection
+```json
+{
+  "_id": "ObjectId",
+  "email": "String (unique, indexed)",
+  "password": "String (hashed)",
+  "role": "String (enum: 'patient', 'doctor', 'hospital_admin')",
+  "profile": {
+    "firstName": "String",
+    "lastName": "String",
+    "phone": "String",
+    "address": "Object",
+    "dateOfBirth": "Date",
+    "gender": "String"
+  },
+  "isVerified": "Boolean",
+  "createdAt": "Date",
+  "updatedAt": "Date"
+}
+```
+
+### Patients Collection
+```json
+{
+  "_id": "ObjectId",
+  "userId": "ObjectId (ref: Users)",
+  "healthId": "String (unique, government ID)",
+  "emergencyContacts": [{
+    "name": "String",
+    "relationship": "String",
+    "phone": "String"
+  }],
+  "medicalHistory": {
+    "allergies": ["String"],
+    "chronicConditions": ["String"],
+    "currentMedications": [{
+      "name": "String",
+      "dosage": "String",
+      "frequency": "String",
+      "startDate": "Date",
+      "endDate": "Date"
+    }],
+    "surgeries": [{
+      "procedure": "String",
+      "date": "Date",
+      "hospital": "String",
+      "notes": "String"
+    }]
+  },
+  "insuranceInfo": {
+    "provider": "String",
+    "policyNumber": "String",
+    "coverageDetails": "Object",
+    "validUntil": "Date"
+  },
+  "createdAt": "Date",
+  "updatedAt": "Date"
+}
+```
+
+### Doctors Collection
+```json
+{
+  "_id": "ObjectId",
+  "userId": "ObjectId (ref: Users)",
+  "registrationNumber": "String (unique, medical council ID)",
+  "specialization": "String",
+  "qualifications": [{
+    "degree": "String",
+    "institution": "String",
+    "year": "Number"
+  }],
+  "hospitalIds": ["ObjectId (ref: Hospitals)"],
+  "consultationFee": "Number",
+  "availability": [{
+    "day": "String",
+    "startTime": "String",
+    "endTime": "String",
+    "hospitalId": "ObjectId (ref: Hospitals)"
+  }],
+  "yearsOfExperience": "Number",
+  "createdAt": "Date",
+  "updatedAt": "Date"
+}
+```
+
+### Hospitals Collection
+```json
+{
+  "_id": "ObjectId",
+  "name": "String",
+  "address": {
+    "street": "String",
+    "city": "String",
+    "state": "String",
+    "zipCode": "String",
+    "country": "String",
+    "coordinates": {
+      "latitude": "Number",
+      "longitude": "Number"
+    }
+  },
+  "contactInfo": {
+    "email": "String",
+    "phone": "String",
+    "website": "String"
+  },
+  "registrationNumber": "String",
+  "facilities": ["String"],
+  "departments": [{
+    "name": "String",
+    "head": "ObjectId (ref: Doctors)",
+    "contactExtension": "String"
+  }],
+  "bedInfo": {
+    "total": "Number",
+    "available": "Number",
+    "icu": {
+      "total": "Number",
+      "available": "Number"
+    }
+  },
+  "adminUsers": ["ObjectId (ref: Users)"],
+  "createdAt": "Date",
+  "updatedAt": "Date"
+}
+```
+
+### Appointments Collection
+```json
+{
+  "_id": "ObjectId",
+  "patientId": "ObjectId (ref: Patients)",
+  "doctorId": "ObjectId (ref: Doctors)",
+  "hospitalId": "ObjectId (ref: Hospitals)",
+  "dateTime": "Date",
+  "duration": "Number (minutes)",
+  "type": "String (enum: 'regular', 'followup', 'emergency')",
+  "status": "String (enum: 'scheduled', 'completed', 'cancelled', 'no-show')",
+  "reason": "String",
+  "notes": "String",
+  "createdAt": "Date",
+  "updatedAt": "Date"
+}
+```
+
+### MedicalRecords Collection
+```json
+{
+  "_id": "ObjectId",
+  "patientId": "ObjectId (ref: Patients)",
+  "doctorId": "ObjectId (ref: Doctors)",
+  "hospitalId": "ObjectId (ref: Hospitals)",
+  "appointmentId": "ObjectId (ref: Appointments)",
+  "recordType": "String (enum: 'consultation', 'prescription', 'labResult', 'imaging', 'surgery')",
+  "date": "Date",
+  "diagnosis": ["String"],
+  "symptoms": ["String"],
+  "vitals": {
+    "temperature": "Number",
+    "bloodPressure": "String",
+    "heartRate": "Number",
+    "respiratoryRate": "Number",
+    "oxygenSaturation": "Number"
+  },
+  "prescription": [{
+    "medication": "String",
+    "dosage": "String",
+    "frequency": "String",
+    "duration": "String",
+    "notes": "String"
+  }],
+  "labResults": [{
+    "test": "String",
+    "result": "String",
+    "referenceRange": "String",
+    "interpretation": "String"
+  }],
+  "notes": "String",
+  "attachments": [{
+    "fileId": "String",
+    "fileName": "String",
+    "fileType": "String",
+    "url": "String"
+  }],
+  "followUpDate": "Date",
+  "createdAt": "Date",
+  "updatedAt": "Date"
+}
+```
+
+### InsuranceClaims Collection
+```json
+{
+  "_id": "ObjectId",
+  "patientId": "ObjectId (ref: Patients)",
+  "hospitalId": "ObjectId (ref: Hospitals)",
+  "policyNumber": "String",
+  "claimAmount": "Number",
+  "treatmentDetails": "String",
+  "diagnosisCodes": ["String"],
+  "attachedDocuments": [{
+    "fileId": "String",
+    "fileName": "String",
+    "fileType": "String",
+    "url": "String"
+  }],
+  "status": "String (enum: 'submitted', 'underReview', 'approved', 'rejected', 'partiallyApproved')",
+  "approvedAmount": "Number",
+  "submissionDate": "Date",
+  "responseDate": "Date",
+  "notes": "String",
+  "createdAt": "Date",
+  "updatedAt": "Date"
+}
+```
+
+## 4. API Endpoints
+
+### Authentication API
+- `POST /api/auth/register` - Register new user (patient/doctor/hospital)
+- `POST /api/auth/login` - User login
+- `POST /api/auth/verify-email` - Email verification
+- `POST /api/auth/forgot-password` - Password reset request
+- `POST /api/auth/reset-password` - Password reset with token
+- `POST /api/auth/refresh-token` - Refresh JWT token
+- `GET /api/auth/me` - Get current user profile
+
+### Patient API
+- `GET /api/patients/profile` - Get patient profile
+- `PUT /api/patients/profile` - Update patient profile
+- `GET /api/patients/medical-history` - Get complete medical history
+- `GET /api/patients/appointments` - List patient appointments
+- `POST /api/patients/appointments` - Schedule new appointment
+- `GET /api/patients/prescriptions` - List active prescriptions
+- `GET /api/patients/insurance` - Get insurance information
+- `POST /api/patients/emergency-card` - Generate emergency access QR code
+
+### Doctor API
+- `GET /api/doctors/profile` - Get doctor profile
+- `PUT /api/doctors/profile` - Update doctor profile
+- `GET /api/doctors/patients` - List doctor's patients
+- `GET /api/doctors/appointments` - List upcoming appointments
+- `PUT /api/doctors/appointments/:id` - Update appointment status
+- `POST /api/doctors/medical-records` - Create new medical record
+- `GET /api/doctors/medical-records/:patientId` - Get patient's medical records
+- `POST /api/doctors/prescriptions` - Create new prescription
+
+### Hospital API
+- `GET /api/hospitals/profile` - Get hospital profile
+- `PUT /api/hospitals/profile` - Update hospital profile
+- `GET /api/hospitals/doctors` - List hospital doctors
+- `POST /api/hospitals/doctors` - Add doctor to hospital
+- `GET /api/hospitals/patients` - List current hospital patients
+- `GET /api/hospitals/bed-availability` - Get bed availability
+- `PUT /api/hospitals/bed-availability` - Update bed availability
+- `POST /api/hospitals/patient-transfer` - Initiate patient transfer
+
+### Emergency Access API
+- `GET /api/emergency/:healthId` - Get critical patient information
+- `POST /api/emergency/access-log` - Log emergency access event
+
+### Insurance API
+- `GET /api/insurance/schemes` - List available insurance schemes
+- `GET /api/insurance/eligibility/:scheme` - Check patient eligibility
+- `POST /api/insurance/claims` - Submit new insurance claim
+- `GET /api/insurance/claims/:id` - Check claim status
+
+## 5. Security Considerations
+
+### Data Encryption
+- **In Transit**: HTTPS with TLS 1.3 for all communications
+- **At Rest**: AES-256 encryption for sensitive medical data
+- **Database Encryption**: MongoDB Field Level Encryption for PHI fields
+
+### Authentication Security
+- **Password Hashing**: bcrypt with appropriate salt rounds
+- **Token Security**: Short-lived JWTs (15 min) with secure refresh token rotation
+- **2FA**: Optional two-factor authentication for all users
+- **IP Monitoring**: Suspicious login detection and prevention
+
+### Access Control
+- **Role-Based Access Control (RBAC)**: Granular permissions for user roles
+- **Audit Logging**: Track all data access and modifications
+- **Consent Management**: Patient consent tracking for data sharing
+- **Emergency Access Protocol**: Special logging and notification for emergency data access
+
+### Compliance
+- **HIPAA Compliance**: Full compliance with health data privacy regulations
+- **Data Retention Policy**: Automated enforcement of data retention rules
+- **Right to Access**: Patient data export functionality
+- **Breach Response**: Automated detection and notification system
+
+## 6. Scalability Considerations
+
+### Horizontal Scaling
+- Stateless API services for easy replication
+- Database sharding strategy for patient data partitioning
+- Read replicas for high-traffic queries
+
+### Performance Optimization
+- API response caching with Redis
+- Database indexing strategy for common queries
+- CDN for static assets and document delivery
+
+### Load Management
+- Rate limiting on API endpoints
+- Connection pooling for database connections
+- Queue-based processing for non-real-time operations
+
+## 7. Deployment Strategy
+
+### Environment Configuration
+- Development: Local Docker Compose setup
+- Testing: Isolated test environment with seeded test data
+- Staging: Production-like environment for final testing
+- Production: Kubernetes cluster with high availability
+
+### CI/CD Pipeline
+- Automated testing on every commit
+- Staged deployment with approval gates
+- Blue/Green deployment for zero-downtime updates
+- Automated rollback capability for failed deployments
+
+### Backup Strategy
+- Daily full database backups
+- Continuous incremental backups
+- Point-in-time recovery capability
+- Geo-replicated backup storage
+
+## 8. Monitoring and Alerting
+
+### System Monitoring
+- API endpoint response time tracking
+- Database query performance monitoring
+- Server resource utilization metrics
+- Error rate tracking with thresholds
+
+### Business Metrics
+- User registration and activity rates
+- Appointment booking metrics
+- Doctor availability and utilization
+- Cross-hospital transfer statistics
+
+### Alerting System
+- Critical error immediate notifications
+- Performance degradation alerts
+- Security incident detection
+- Daily operational reports 

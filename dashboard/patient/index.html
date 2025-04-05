@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard - Dhanvantri Healthcare Platform</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <h1>Dhanvantri</h1>
+                </div>
+                <button class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <div class="user-profile">
+                <div class="avatar">
+                    <img src="../../assets/img/user.png" alt="User Avatar">
+                </div>
+                <div class="user-info">
+                    <h3 class="user-name">John Doe</h3>
+                    <p class="user-id">Health ID: ABCD1234</p>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="active">
+                        <a href="#" data-page="dashboard">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-page="appointments">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Appointments</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-page="medical-records">
+                            <i class="fas fa-file-medical"></i>
+                            <span>Medical Records</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-page="prescriptions">
+                            <i class="fas fa-prescription"></i>
+                            <span>Prescriptions</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-page="lab-reports">
+                            <i class="fas fa-flask"></i>
+                            <span>Lab Reports</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-page="insurance">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Insurance</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-page="emergency-card">
+                            <i class="fas fa-ambulance"></i>
+                            <span>Emergency Card</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-page="settings">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="#" class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="content-header">
+                <div class="header-left">
+                    <h2 class="page-title">Dashboard</h2>
+                </div>
+                <div class="header-right">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search medical records...">
+                    </div>
+                    <div class="header-actions">
+                        <button class="notification-btn">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge">3</span>
+                        </button>
+                        <button class="help-btn">
+                            <i class="fas fa-question-circle"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Notification Panel -->
+            <div class="notification-panel dropdown-panel">
+                <div class="panel-header">
+                    <h3>Notifications</h3>
+                    <button class="mark-all-read">Mark all as read</button>
+                </div>
+                <div class="notification-list">
+                    <div class="notification-item unread">
+                        <div class="notification-icon bg-primary">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="notification-content">
+                            <p>Your appointment with Dr. Smith has been confirmed</p>
+                            <span class="notification-time">2 hours ago</span>
+                        </div>
+                    </div>
+                    <div class="notification-item unread">
+                        <div class="notification-icon bg-warning">
+                            <i class="fas fa-prescription"></i>
+                        </div>
+                        <div class="notification-content">
+                            <p>New prescription added by Dr. Johnson</p>
+                            <span class="notification-time">Yesterday</span>
+                        </div>
+                    </div>
+                    <div class="notification-item unread">
+                        <div class="notification-icon bg-info">
+                            <i class="fas fa-flask"></i>
+                        </div>
+                        <div class="notification-content">
+                            <p>Your lab results are ready to view</p>
+                            <span class="notification-time">2 days ago</span>
+                        </div>
+                    </div>
+                    <div class="notification-item">
+                        <div class="notification-icon bg-success">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="notification-content">
+                            <p>Payment for your last visit was processed successfully</p>
+                            <span class="notification-time">1 week ago</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-footer">
+                    <a href="#" class="view-all-link">View all notifications</a>
+                </div>
+            </div>
+            
+            <!-- Dashboard Overview -->
+            <div class="content-wrapper page-active" id="dashboard">
+                <div class="welcome-banner">
+                    <div class="welcome-message">
+                        <h3>Welcome back, John!</h3>
+                        <p>Here's an overview of your health information and upcoming activities.</p>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="btn btn-primary" onclick="openModal('appointmentModal')">
+                            <i class="fas fa-plus"></i> New Appointment
+                        </button>
+                        <button class="btn btn-outline" id="downloadRecordsBtn">
+                            <i class="fas fa-download"></i> Download Records
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="stats-cards">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-primary">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h4>Upcoming Appointments</h4>
+                            <p class="stat-value">2</p>
+                            <p class="stat-detail">Next: Dr. Smith on May 15</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-success">
+                            <i class="fas fa-prescription"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h4>Active Medications</h4>
+                            <p class="stat-value">3</p>
+                            <p class="stat-detail">Last updated: 1 week ago</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-warning">
+                            <i class="fas fa-flask"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h4>Recent Lab Tests</h4>
+                            <p class="stat-value">1</p>
+                            <p class="stat-detail">Blood work: Apr 10, 2023</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-info">
+                            <i class="fas fa-file-medical"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h4>Medical Records</h4>
+                            <p class="stat-value">12</p>
+                            <p class="stat-detail">Last added: 2 weeks ago</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-sections">
+                    <div class="section-card upcoming-appointments">
+                        <div class="section-header">
+                            <h3>Upcoming Appointments</h3>
+                            <a href="#" class="view-all" data-page="appointments">View All</a>
+                        </div>
+                        <div class="appointment-list">
+                            <div class="appointment-item">
+                                <div class="appointment-date">
+                                    <div class="date-display">
+                                        <span class="month">May</span>
+                                        <span class="day">15</span>
+                                    </div>
+                                    <span class="time">9:30 AM</span>
+                                </div>
+                                <div class="appointment-details">
+                                    <h4>Dr. Robert Smith</h4>
+                                    <p>Cardiology - Annual Checkup</p>
+                                    <p class="location"><i class="fas fa-map-marker-alt"></i> City Hospital, Room 305</p>
+                                </div>
+                                <div class="appointment-actions">
+                                    <button class="btn btn-sm btn-outline" onclick="handleAppointment('reschedule', 'apt-001')">Reschedule</button>
+                                    <button class="btn btn-sm btn-outline btn-danger" onclick="handleAppointment('cancel', 'apt-001')">Cancel</button>
+                                </div>
+                            </div>
+                            <div class="appointment-item">
+                                <div class="appointment-date">
+                                    <div class="date-display">
+                                        <span class="month">May</span>
+                                        <span class="day">28</span>
+                                    </div>
+                                    <span class="time">2:15 PM</span>
+                                </div>
+                                <div class="appointment-details">
+                                    <h4>Dr. Emily Johnson</h4>
+                                    <p>Dentistry - Regular Cleaning</p>
+                                    <p class="location"><i class="fas fa-map-marker-alt"></i> Smile Dental Clinic</p>
+                                </div>
+                                <div class="appointment-actions">
+                                    <button class="btn btn-sm btn-outline" onclick="handleAppointment('reschedule', 'apt-002')">Reschedule</button>
+                                    <button class="btn btn-sm btn-outline btn-danger" onclick="handleAppointment('cancel', 'apt-002')">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section-card current-medications">
+                        <div class="section-header">
+                            <h3>Current Medications</h3>
+                            <a href="#" class="view-all" data-page="prescriptions">View All</a>
+                        </div>
+                        <div class="medication-list">
+                            <div class="medication-item">
+                                <div class="medication-icon">
+                                    <i class="fas fa-pills"></i>
+                                </div>
+                                <div class="medication-details">
+                                    <h4>Atorvastatin 20mg</h4>
+                                    <p>1 tablet once daily at night</p>
+                                    <div class="medication-meta">
+                                        <span><i class="far fa-calendar-alt"></i> Started: Jan 15, 2023</span>
+                                        <span><i class="fas fa-user-md"></i> Dr. Robert Smith</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="medication-item">
+                                <div class="medication-icon">
+                                    <i class="fas fa-capsules"></i>
+                                </div>
+                                <div class="medication-details">
+                                    <h4>Metformin 500mg</h4>
+                                    <p>1 tablet twice daily with meals</p>
+                                    <div class="medication-meta">
+                                        <span><i class="far fa-calendar-alt"></i> Started: Feb 3, 2023</span>
+                                        <span><i class="fas fa-user-md"></i> Dr. Sarah Williams</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Health Metrics Section -->
+                <div class="section-card health-metrics">
+                    <div class="section-header">
+                        <h3>Health Metrics</h3>
+                        <div class="header-controls">
+                            <select id="timeRangeSelect">
+                                <option value="6m">Last 6 Months</option>
+                                <option value="3m">Last 3 Months</option>
+                                <option value="1m">Last Month</option>
+                                <option value="1w">Last Week</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-grid">
+                        <div class="chart-container">
+                            <h4>Blood Pressure</h4>
+                            <canvas id="bloodPressureChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h4>Weight</h4>
+                            <canvas id="weightChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h4>Blood Sugar</h4>
+                            <canvas id="bloodSugarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modals -->
+            <div class="modal" id="appointmentModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Schedule New Appointment</h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="appointmentForm">
+                            <div class="form-group">
+                                <label for="specialtySelect">Specialty</label>
+                                <select id="specialtySelect" required>
+                                    <option value="">Select Specialty</option>
+                                    <option value="cardiology">Cardiology</option>
+                                    <option value="dermatology">Dermatology</option>
+                                    <option value="neurology">Neurology</option>
+                                    <option value="orthopedics">Orthopedics</option>
+                                    <option value="pediatrics">Pediatrics</option>
+                                    <option value="psychiatry">Psychiatry</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="doctorSelect">Doctor</label>
+                                <select id="doctorSelect" required>
+                                    <option value="">Select Doctor</option>
+                                    <!-- Will be populated based on specialty -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="appointmentDate">Date</label>
+                                <input type="date" id="appointmentDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="appointmentTime">Time</label>
+                                <select id="appointmentTime" required>
+                                    <option value="">Select Time</option>
+                                    <!-- Will be populated based on date -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="appointmentReason">Reason for Visit</label>
+                                <textarea id="appointmentReason" rows="3"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline btn-cancel">Cancel</button>
+                        <button class="btn btn-primary" id="saveAppointmentBtn">Schedule Appointment</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html> 
