@@ -15,6 +15,9 @@ const appointmentRoutes = require('./routes/appointmentRoutes');
 const medicalRecordRoutes = require('./routes/medicalRecordRoutes');
 const prescriptionRoutes = require('./routes/prescriptionRoutes');
 const labReportRoutes = require('./routes/labReportRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const healthMetricRoutes = require('./routes/healthMetricRoutes');
+const emergencyCardRoutes = require('./routes/emergencyCardRoutes');
 
 const app = express();
 
@@ -38,6 +41,9 @@ app.use('/api/v1/appointments', appointmentRoutes);
 app.use('/api/v1/medical-records', medicalRecordRoutes);
 app.use('/api/v1/prescriptions', prescriptionRoutes);
 app.use('/api/v1/lab-reports', labReportRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/health-metrics', healthMetricRoutes);
+app.use('/api/v1/emergency-card', emergencyCardRoutes);
 
 // Root route
 app.get('/', (req, res) => {

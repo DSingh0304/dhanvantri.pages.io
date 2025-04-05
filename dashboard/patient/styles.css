@@ -1079,4 +1079,270 @@ body.modal-open {
     .chart-container {
         height: 200px;
     }
+}
+
+/* Add Emergency Card Styles */
+
+/* Emergency Card Container */
+.emergency-card-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+@media (min-width: 992px) {
+    .emergency-card-container {
+        grid-template-columns: 2fr 1fr;
+    }
+}
+
+/* Emergency Card */
+.emergency-card {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.emergency-card .card-header {
+    background-color: #1976D2;
+    color: white;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.emergency-card .card-header h4 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.emergency-card .status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.emergency-card .status.active {
+    background-color: #4CAF50;
+}
+
+.emergency-card .status.inactive {
+    background-color: #F44336;
+}
+
+.emergency-card .card-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+@media (min-width: 768px) {
+    .emergency-card .card-body {
+        flex-direction: row;
+        align-items: center;
+    }
+}
+
+.emergency-card .patient-info {
+    flex: 1;
+}
+
+.emergency-card .info-group {
+    margin-bottom: 12px;
+}
+
+.emergency-card .info-group label {
+    display: inline-block;
+    font-weight: 600;
+    min-width: 150px;
+    color: #555;
+}
+
+.emergency-card .qr-code-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+}
+
+.emergency-card .qr-code {
+    width: 160px;
+    height: 160px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emergency-card .qr-code img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.emergency-card .expires {
+    font-size: 12px;
+    color: #666;
+    margin: 0;
+}
+
+.emergency-card .card-actions {
+    padding: 16px 24px;
+    background-color: #f5f5f5;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* Card Settings */
+.card-settings {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 24px;
+}
+
+.card-settings h4 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.form-help {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+}
+
+/* Switch Toggle */
+.switch-label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #1976D2;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #1976D2;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+#cardActiveStatus {
+    font-weight: 500;
+    vertical-align: middle;
+}
+
+/* Access Logs Section */
+.access-logs-section {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 24px;
+    margin-top: 32px;
+}
+
+.access-logs-section .section-header {
+    margin-bottom: 20px;
+}
+
+.access-logs-section .section-header h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+.access-logs-section .section-header p {
+    margin: 0;
+    color: #666;
+}
+
+.access-logs-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.access-logs-table th {
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 2px solid #eee;
+    font-weight: 600;
+    color: #333;
+}
+
+.access-logs-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+    color: #555;
+}
+
+.access-logs-table .no-records, 
+.access-logs-table .loading {
+    text-align: center;
+    padding: 24px;
+    color: #888;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: #1976D2;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 } 

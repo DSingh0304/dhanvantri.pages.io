@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initTabNavigation();
     initEventListeners();
     initSearch();
+    initEmergencyCard();
     
     // Show dashboard content (simulate loading)
     setTimeout(() => {
@@ -749,4 +750,231 @@ function showSearchResults(query) {
     
     // Open the modal
     openModal('searchResultsModal');
+}
+
+/**
+ * Initialize emergency card functionality
+ */
+function initEmergencyCard() {
+    // Initialize card elements
+    const regenerateBtn = document.getElementById('regenerateCardBtn');
+    const downloadBtn = document.getElementById('downloadCardBtn');
+    const accessLevelSelect = document.getElementById('accessLevelSelect');
+    const cardActiveToggle = document.getElementById('cardActiveToggle');
+    const cardActiveStatus = document.getElementById('cardActiveStatus');
+    
+    // Load emergency card data
+    loadEmergencyCard();
+    
+    // Load access logs
+    loadAccessLogs();
+    
+    // Setup event listeners
+    if (regenerateBtn) {
+        regenerateBtn.addEventListener('click', regenerateEmergencyCard);
+    }
+    
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', downloadEmergencyCard);
+    }
+    
+    if (accessLevelSelect) {
+        accessLevelSelect.addEventListener('change', function() {
+            updateCardSettings({
+                accessLevel: this.value
+            });
+        });
+    }
+    
+    if (cardActiveToggle) {
+        cardActiveToggle.addEventListener('change', function() {
+            const isActive = this.checked;
+            cardActiveStatus.textContent = isActive ? 'Active' : 'Inactive';
+            
+            updateCardSettings({
+                isActive: isActive
+            });
+        });
+    }
+}
+
+/**
+ * Load emergency card data from the API
+ */
+function loadEmergencyCard() {
+    // Show loading state
+    const qrCodeContainer = document.getElementById('qrCode');
+    if (qrCodeContainer) {
+        qrCodeContainer.innerHTML = '<div class="loading-spinner"></div>';
+    }
+    
+    // In a real app, this would be an API call
+    // For demo purposes, we'll simulate the API response
+    setTimeout(() => {
+        // Simulate API response
+        const cardData = {
+            patientName: 'John Doe',
+            healthId: 'ABCD1234',
+            bloodGroup: 'O+',
+            emergencyContact: '+1 (555) 123-4567',
+            accessCode: 'EM-12345678',
+            expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days from now
+            qrCode: 'data:image/png;base64,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',
+            accessLevel: 'basic',
+            isActive: true
+        };
+        
+        // Update UI with data
+        updateEmergencyCardUI(cardData);
+    }, 1000);
+}
+
+/**
+ * Update the emergency card UI with data
+ */
+function updateEmergencyCardUI(cardData) {
+    // Update patient info
+    document.getElementById('patientName').textContent = cardData.patientName;
+    document.getElementById('healthId').textContent = cardData.healthId;
+    document.getElementById('bloodGroup').textContent = cardData.bloodGroup;
+    document.getElementById('emergencyContact').textContent = cardData.emergencyContact;
+    
+    // Format expiry date
+    const expiryDate = new Date(cardData.expiresAt);
+    document.getElementById('expiryDate').textContent = expiryDate.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    
+    // Update QR code
+    const qrCodeContainer = document.getElementById('qrCode');
+    if (qrCodeContainer) {
+        qrCodeContainer.innerHTML = `<img src="${cardData.qrCode}" alt="Emergency QR Code">`;
+    }
+    
+    // Update settings
+    document.getElementById('accessLevelSelect').value = cardData.accessLevel;
+    document.getElementById('cardActiveToggle').checked = cardData.isActive;
+    document.getElementById('cardActiveStatus').textContent = cardData.isActive ? 'Active' : 'Inactive';
+    
+    // Update card status
+    const cardStatus = document.getElementById('cardStatus');
+    if (cardStatus) {
+        cardStatus.textContent = cardData.isActive ? 'Active' : 'Inactive';
+        cardStatus.className = `status ${cardData.isActive ? 'active' : 'inactive'}`;
+    }
+}
+
+/**
+ * Load access logs from the API
+ */
+function loadAccessLogs() {
+    const logsBody = document.getElementById('accessLogsBody');
+    if (!logsBody) return;
+    
+    // Show loading state
+    logsBody.innerHTML = '<tr><td colspan="4" class="loading">Loading logs...</td></tr>';
+    
+    // In a real app, this would be an API call
+    // For demo purposes, we'll simulate the API response
+    setTimeout(() => {
+        // Sample logs data
+        const logs = [
+            {
+                accessedAt: '2023-05-01T14:23:15Z',
+                accessedBy: 'Emergency Medical Services',
+                accessIp: '192.168.1.10',
+                notes: 'Emergency situation assessment'
+            },
+            {
+                accessedAt: '2023-04-15T09:10:45Z',
+                accessedBy: 'Dr. Sarah Johnson',
+                accessIp: '10.0.0.155',
+                notes: 'Pre-operative verification'
+            }
+        ];
+        
+        if (logs.length === 0) {
+            logsBody.innerHTML = '<tr><td colspan="4" class="no-records">No access records found</td></tr>';
+        } else {
+            // Clear and populate logs
+            logsBody.innerHTML = '';
+            logs.forEach(log => {
+                const date = new Date(log.accessedAt);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${date.toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}</td>
+                    <td>${log.accessedBy}</td>
+                    <td>${log.accessIp}</td>
+                    <td>${log.notes}</td>
+                `;
+                logsBody.appendChild(row);
+            });
+        }
+    }, 1500);
+}
+
+/**
+ * Regenerate emergency card
+ */
+function regenerateEmergencyCard() {
+    if (confirm('Are you sure you want to regenerate your emergency card? This will invalidate the current card and create a new one.')) {
+        // Show loading spinner
+        const qrCodeContainer = document.getElementById('qrCode');
+        if (qrCodeContainer) {
+            qrCodeContainer.innerHTML = '<div class="loading-spinner"></div>';
+        }
+        
+        showNotification('Regenerating your emergency card...', 'info');
+        
+        // In a real app, this would be an API call
+        // For demo purposes, we'll simulate the API response
+        setTimeout(() => {
+            // Load the new card data
+            loadEmergencyCard();
+            showNotification('Your emergency card has been regenerated', 'success');
+        }, 1500);
+    }
+}
+
+/**
+ * Update card settings
+ */
+function updateCardSettings(settings) {
+    showNotification('Updating card settings...', 'info');
+    
+    // In a real app, this would be an API call
+    // For demo purposes, we'll simulate the API response
+    setTimeout(() => {
+        showNotification('Card settings updated successfully', 'success');
+        
+        // Update UI status if card is deactivated/activated
+        if (settings.isActive !== undefined) {
+            const cardStatus = document.getElementById('cardStatus');
+            if (cardStatus) {
+                cardStatus.textContent = settings.isActive ? 'Active' : 'Inactive';
+                cardStatus.className = `status ${settings.isActive ? 'active' : 'inactive'}`;
+            }
+        }
+    }, 800);
+}
+
+/**
+ * Download emergency card as a PDF
+ */
+function downloadEmergencyCard() {
+    showNotification('Preparing your emergency card for download...', 'info');
+    
+    // In a real app, this would generate and download a PDF
+    // For demo purposes, we'll just simulate the process
+    setTimeout(() => {
+        showNotification('Your emergency card is ready for download', 'success');
+    }, 1200);
 } 

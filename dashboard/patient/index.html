@@ -65,6 +65,12 @@
                         </a>
                     </li>
                     <li>
+                        <a href="#" data-page="emergency-card">
+                            <i class="fas fa-medkit"></i>
+                            <span>Emergency Card</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="#" data-page="insurance">
                             <i class="fas fa-shield-alt"></i>
                             <span>Insurance</span>
@@ -241,6 +247,103 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Emergency Card Section -->
+            <div class="content-wrapper" id="emergency-card">
+                <div class="section-intro">
+                    <h3>Emergency Medical Card</h3>
+                    <p>Your emergency medical card provides quick access to critical health information in case of emergencies.</p>
+                </div>
+                
+                <div class="emergency-card-container">
+                    <div class="emergency-card">
+                        <div class="card-header">
+                            <h4>Dhanvantri Emergency Medical Card</h4>
+                            <div id="cardStatus" class="status active">Active</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="patient-info">
+                                <div class="info-group">
+                                    <label>Name:</label>
+                                    <span id="patientName">John Doe</span>
+                                </div>
+                                <div class="info-group">
+                                    <label>Health ID:</label>
+                                    <span id="healthId">ABCD1234</span>
+                                </div>
+                                <div class="info-group">
+                                    <label>Blood Group:</label>
+                                    <span id="bloodGroup">O+</span>
+                                </div>
+                                <div class="info-group">
+                                    <label>Emergency Contact:</label>
+                                    <span id="emergencyContact">+1 (555) 123-4567</span>
+                                </div>
+                            </div>
+                            <div class="qr-code-container">
+                                <div id="qrCode" class="qr-code">
+                                    <!-- QR code will be inserted here -->
+                                </div>
+                                <p class="expires">Expires: <span id="expiryDate">June 15, 2023</span></p>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <button id="regenerateCardBtn" class="btn btn-primary">
+                                <i class="fas fa-sync-alt"></i> Regenerate Card
+                            </button>
+                            <button id="downloadCardBtn" class="btn btn-outline">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card-settings">
+                        <h4>Card Settings</h4>
+                        <div class="form-group">
+                            <label for="accessLevelSelect">Information Access Level</label>
+                            <select id="accessLevelSelect">
+                                <option value="basic">Basic (Blood type, allergies, conditions)</option>
+                                <option value="full">Full (Basic + medications, contact details)</option>
+                            </select>
+                            <p class="form-help">Choose how much information to share in emergencies</p>
+                        </div>
+                        <div class="form-group">
+                            <label class="switch-label">Card Status</label>
+                            <label class="switch">
+                                <input type="checkbox" id="cardActiveToggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <span id="cardActiveStatus">Active</span>
+                            <p class="form-help">Disable if you don't want your card to be accessible</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="access-logs-section">
+                    <div class="section-header">
+                        <h3>Access Logs</h3>
+                        <p>See when your emergency information was accessed</p>
+                    </div>
+                    <div class="logs-container">
+                        <table class="access-logs-table">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Accessed By</th>
+                                    <th>Location/IP</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accessLogsBody">
+                                <!-- Access logs will be inserted here -->
+                                <tr>
+                                    <td colspan="4" class="no-records">No records found</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
