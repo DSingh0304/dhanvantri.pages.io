@@ -1,4 +1,61 @@
+// API Configuration
+const API_BASE_URL = 'https://api.ysinghc.me/v1';
+let authToken = localStorage.getItem('authToken');
+
+// API Request helper
+async function apiRequest(endpoint, method = 'GET', data = null) {
+    const url = `${API_BASE_URL}${endpoint}`;
+    const options = {
+        method,
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    };
+    
+    // Add auth token if available
+    if (authToken) {
+        options.headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    
+    // Add body for non-GET requests
+    if (data && method !== 'GET') {
+        options.body = JSON.stringify(data);
+    }
+    
+    try {
+        const response = await fetch(url, options);
+        
+        // Handle unauthorized responses
+        if (response.status === 401) {
+            // Clear token and redirect to login
+            localStorage.removeItem('authToken');
+            window.location.href = '../../login/';
+            return null;
+        }
+        
+        // Parse JSON response
+        const result = await response.json();
+        
+        // Handle error responses
+        if (!response.ok) {
+            throw new Error(result.message || 'API request failed');
+        }
+        
+        return result;
+    } catch (error) {
+        console.error('API Request Error:', error);
+        showNotification(error.message || 'Failed to connect to server', 'error');
+        return null;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if user is authenticated
+    if (!authToken) {
+        window.location.href = '../../login/';
+        return;
+    }
+    
     // Initialize dashboard functionality
     initSidebar();
     initNotifications();
@@ -7,6 +64,9 @@ document.addEventListener('DOMContentLoaded', function() {
     initEventListeners();
     initSearch();
     initEmergencyCard();
+    
+    // Fetch user data
+    fetchUserData();
     
     // Show dashboard content (simulate loading)
     setTimeout(() => {
@@ -86,11 +146,14 @@ function initSidebar() {
 /**
  * Initialize notifications
  */
-function initNotifications() {
+async function initNotifications() {
     const notificationBtn = document.querySelector('.notification-btn');
     const notificationPanel = document.querySelector('.notification-panel');
     
     if (notificationBtn && notificationPanel) {
+        // Load notifications
+        await loadNotifications(notificationPanel);
+        
         notificationBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             notificationPanel.classList.toggle('show');
@@ -113,10 +176,9 @@ function initNotifications() {
         // Mark all as read
         const markReadBtn = notificationPanel.querySelector('.mark-all-read');
         if (markReadBtn) {
-            markReadBtn.addEventListener('click', function() {
-                notificationPanel.querySelectorAll('.notification-item.unread').forEach(item => {
-                    item.classList.remove('unread');
-                });
+            markReadBtn.addEventListener('click', async function() {
+                await apiRequest('/notifications/mark-all-read', 'PUT');
+                loadNotifications(notificationPanel);
                 
                 // Update badge
                 const badge = notificationBtn.querySelector('.badge');
@@ -130,26 +192,114 @@ function initNotifications() {
 }
 
 /**
+ * Load notifications from API
+ */
+async function loadNotifications(panel) {
+    const notificationList = panel.querySelector('.notification-list');
+    const badge = document.querySelector('.notification-btn .badge');
+    
+    if (notificationList) {
+        notificationList.innerHTML = '<div class="loading">Loading notifications...</div>';
+        
+        const response = await apiRequest('/notifications?limit=5');
+        
+        if (response) {
+            notificationList.innerHTML = '';
+            
+            if (response.notifications.length === 0) {
+                notificationList.innerHTML = '<div class="no-records">No notifications</div>';
+            } else {
+                response.notifications.forEach(notification => {
+                    const item = document.createElement('div');
+                    item.className = `notification-item ${notification.isRead ? '' : 'unread'}`;
+                    item.innerHTML = `
+                        <div class="notification-icon">
+                            <i class="fas fa-${notification.icon || 'bell'}"></i>
+                        </div>
+                        <div class="notification-content">
+                            <p>${notification.message}</p>
+                            <span class="notification-time">${formatTimeAgo(notification.createdAt)}</span>
+                        </div>
+                    `;
+                    
+                    // Add click handler to mark as read
+                    item.addEventListener('click', async () => {
+                        if (!notification.isRead) {
+                            await apiRequest(`/notifications/${notification._id}`, 'PUT');
+                            item.classList.remove('unread');
+                        }
+                    });
+                    
+                    notificationList.appendChild(item);
+                });
+            }
+            
+            // Update badge
+            if (badge && response.unreadCount) {
+                badge.textContent = response.unreadCount;
+                badge.classList.remove('hidden');
+            } else if (badge) {
+                badge.textContent = '0';
+                badge.classList.add('hidden');
+            }
+        } else {
+            notificationList.innerHTML = '<div class="error">Failed to load notifications</div>';
+        }
+    }
+}
+
+/**
+ * Format time ago
+ */
+function formatTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHour = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHour / 24);
+    
+    if (diffDay > 0) {
+        return diffDay === 1 ? 'Yesterday' : `${diffDay} days ago`;
+    } else if (diffHour > 0) {
+        return `${diffHour} ${diffHour === 1 ? 'hour' : 'hours'} ago`;
+    } else if (diffMin > 0) {
+        return `${diffMin} ${diffMin === 1 ? 'minute' : 'minutes'} ago`;
+    } else {
+        return 'Just now';
+    }
+}
+
+/**
  * Initialize charts
  */
-function initCharts() {
+async function initCharts() {
     // Check if Chart.js is available
     if (typeof Chart === 'undefined') {
         console.warn('Chart.js is not available. Charts will not be rendered.');
         return;
     }
     
+    // Fetch health metrics data
+    const metrics = await apiRequest('/health-metrics/summary');
+    
+    if (!metrics) {
+        console.warn('Failed to load health metrics data');
+        return;
+    }
+    
     // Blood Pressure Chart
     const bpChartEl = document.getElementById('bloodPressureChart');
-    if (bpChartEl) {
+    if (bpChartEl && metrics.bloodPressure) {
         const bpChart = new Chart(bpChartEl, {
             type: 'line',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                labels: metrics.bloodPressure.labels || [],
                 datasets: [
                     {
                         label: 'Systolic',
-                        data: [120, 125, 118, 129, 122, 120],
+                        data: metrics.bloodPressure.values?.map(v => v.systolic) || [],
                         borderColor: '#1976D2',
                         backgroundColor: 'rgba(25, 118, 210, 0.1)',
                         tension: 0.3,
@@ -157,7 +307,7 @@ function initCharts() {
                     },
                     {
                         label: 'Diastolic',
-                        data: [80, 85, 78, 82, 81, 79],
+                        data: metrics.bloodPressure.values?.map(v => v.diastolic) || [],
                         borderColor: '#F44336',
                         backgroundColor: 'rgba(244, 67, 54, 0.1)',
                         tension: 0.3,
@@ -184,14 +334,14 @@ function initCharts() {
     
     // Weight Chart
     const weightChartEl = document.getElementById('weightChart');
-    if (weightChartEl) {
+    if (weightChartEl && metrics.weight) {
         const weightChart = new Chart(weightChartEl, {
             type: 'line',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                labels: metrics.weight.labels || [],
                 datasets: [{
-                    label: 'Weight (kg)',
-                    data: [75, 74, 73.5, 72, 71.5, 72],
+                    label: `Weight (${metrics.weight.unit || 'kg'})`,
+                    data: metrics.weight.values || [],
                     borderColor: '#4CAF50',
                     backgroundColor: 'rgba(76, 175, 80, 0.1)',
                     tension: 0.3,
@@ -205,7 +355,7 @@ function initCharts() {
                     y: {
                         title: {
                             display: true,
-                            text: 'kg'
+                            text: metrics.weight.unit || 'kg'
                         }
                     }
                 }
@@ -215,14 +365,14 @@ function initCharts() {
     
     // Blood Sugar Chart
     const sugarChartEl = document.getElementById('bloodSugarChart');
-    if (sugarChartEl) {
+    if (sugarChartEl && metrics.bloodSugar) {
         const sugarChart = new Chart(sugarChartEl, {
             type: 'line',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                labels: metrics.bloodSugar.labels || [],
                 datasets: [{
-                    label: 'Blood Sugar (mg/dL)',
-                    data: [95, 105, 98, 92, 97, 94],
+                    label: `Blood Sugar (${metrics.bloodSugar.unit || 'mg/dL'})`,
+                    data: metrics.bloodSugar.values || [],
                     borderColor: '#FF9800',
                     backgroundColor: 'rgba(255, 152, 0, 0.1)',
                     tension: 0.3,
@@ -236,7 +386,7 @@ function initCharts() {
                     y: {
                         title: {
                             display: true,
-                            text: 'mg/dL'
+                            text: metrics.bloodSugar.unit || 'mg/dL'
                         }
                     }
                 }
@@ -247,10 +397,14 @@ function initCharts() {
     // Time range select event
     const timeRangeSelect = document.getElementById('timeRangeSelect');
     if (timeRangeSelect) {
-        timeRangeSelect.addEventListener('change', function() {
-            // Here you would fetch new data based on the selected time range
-            // For demo purposes, we'll just show a notification
-            showNotification(`Data updated for ${this.options[this.selectedIndex].text}`, 'info');
+        timeRangeSelect.addEventListener('change', async function() {
+            const timespan = this.value;
+            const updatedMetrics = await apiRequest(`/health-metrics/summary?timespan=${timespan}`);
+            
+            if (updatedMetrics) {
+                // You would update all charts here with the new data
+                showNotification(`Data updated for ${this.options[this.selectedIndex].text}`, 'info');
+            }
         });
     }
 }
@@ -568,9 +722,11 @@ function logoutUser() {
     if (confirm('Are you sure you want to logout?')) {
         showNotification('Logging you out...', 'info');
         
-        // Simulate logout process
+        // Clear authentication data
+        localStorage.removeItem('authToken');
+        
+        // Redirect to login page
         setTimeout(() => {
-            // In a real app, this would clear the session/token and redirect
             window.location.href = '../../login/';
         }, 1000);
     }
@@ -801,32 +957,35 @@ function initEmergencyCard() {
 /**
  * Load emergency card data from the API
  */
-function loadEmergencyCard() {
+async function loadEmergencyCard() {
     // Show loading state
     const qrCodeContainer = document.getElementById('qrCode');
     if (qrCodeContainer) {
         qrCodeContainer.innerHTML = '<div class="loading-spinner"></div>';
     }
     
-    // In a real app, this would be an API call
-    // For demo purposes, we'll simulate the API response
-    setTimeout(() => {
-        // Simulate API response
-        const cardData = {
-            patientName: 'John Doe',
-            healthId: 'ABCD1234',
-            bloodGroup: 'O+',
-            emergencyContact: '+1 (555) 123-4567',
-            accessCode: 'EM-12345678',
-            expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days from now
-            qrCode: 'data:image/png;base64,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',
-            accessLevel: 'basic',
-            isActive: true
-        };
-        
+    // Fetch emergency card data from API
+    const response = await apiRequest('/emergency-card');
+    
+    if (response && response.emergencyInfo) {
         // Update UI with data
-        updateEmergencyCardUI(cardData);
-    }, 1000);
+        updateEmergencyCardUI({
+            patientName: response.emergencyInfo.patientName,
+            healthId: response.emergencyInfo.healthId,
+            bloodGroup: response.emergencyInfo.bloodGroup,
+            emergencyContact: response.emergencyInfo.emergencyContact,
+            accessCode: response.emergencyInfo.accessCode,
+            expiresAt: response.emergencyCard.expiresAt,
+            qrCode: response.emergencyInfo.qrCode,
+            accessLevel: response.emergencyCard.accessLevel,
+            isActive: response.emergencyCard.isActive
+        });
+    } else {
+        // Show error in QR code area
+        if (qrCodeContainer) {
+            qrCodeContainer.innerHTML = '<div class="error-message">Failed to load emergency card</div>';
+        }
+    }
 }
 
 /**
@@ -869,32 +1028,17 @@ function updateEmergencyCardUI(cardData) {
 /**
  * Load access logs from the API
  */
-function loadAccessLogs() {
+async function loadAccessLogs() {
     const logsBody = document.getElementById('accessLogsBody');
     if (!logsBody) return;
     
     // Show loading state
     logsBody.innerHTML = '<tr><td colspan="4" class="loading">Loading logs...</td></tr>';
     
-    // In a real app, this would be an API call
-    // For demo purposes, we'll simulate the API response
-    setTimeout(() => {
-        // Sample logs data
-        const logs = [
-            {
-                accessedAt: '2023-05-01T14:23:15Z',
-                accessedBy: 'Emergency Medical Services',
-                accessIp: '192.168.1.10',
-                notes: 'Emergency situation assessment'
-            },
-            {
-                accessedAt: '2023-04-15T09:10:45Z',
-                accessedBy: 'Dr. Sarah Johnson',
-                accessIp: '10.0.0.155',
-                notes: 'Pre-operative verification'
-            }
-        ];
-        
+    // Fetch access logs from API
+    const logs = await apiRequest('/emergency-card/logs');
+    
+    if (logs && Array.isArray(logs)) {
         if (logs.length === 0) {
             logsBody.innerHTML = '<tr><td colspan="4" class="no-records">No access records found</td></tr>';
         } else {
@@ -918,13 +1062,15 @@ function loadAccessLogs() {
                 logsBody.appendChild(row);
             });
         }
-    }, 1500);
+    } else {
+        logsBody.innerHTML = '<tr><td colspan="4" class="error">Failed to load access logs</td></tr>';
+    }
 }
 
 /**
  * Regenerate emergency card
  */
-function regenerateEmergencyCard() {
+async function regenerateEmergencyCard() {
     if (confirm('Are you sure you want to regenerate your emergency card? This will invalidate the current card and create a new one.')) {
         // Show loading spinner
         const qrCodeContainer = document.getElementById('qrCode');
@@ -934,25 +1080,25 @@ function regenerateEmergencyCard() {
         
         showNotification('Regenerating your emergency card...', 'info');
         
-        // In a real app, this would be an API call
-        // For demo purposes, we'll simulate the API response
-        setTimeout(() => {
-            // Load the new card data
-            loadEmergencyCard();
+        const response = await apiRequest('/emergency-card/regenerate', 'POST');
+        
+        if (response) {
             showNotification('Your emergency card has been regenerated', 'success');
-        }, 1500);
+            // Reload the emergency card data
+            loadEmergencyCard();
+        }
     }
 }
 
 /**
  * Update card settings
  */
-function updateCardSettings(settings) {
+async function updateCardSettings(settings) {
     showNotification('Updating card settings...', 'info');
     
-    // In a real app, this would be an API call
-    // For demo purposes, we'll simulate the API response
-    setTimeout(() => {
+    const response = await apiRequest('/emergency-card', 'PUT', settings);
+    
+    if (response) {
         showNotification('Card settings updated successfully', 'success');
         
         // Update UI status if card is deactivated/activated
@@ -963,18 +1109,67 @@ function updateCardSettings(settings) {
                 cardStatus.className = `status ${settings.isActive ? 'active' : 'inactive'}`;
             }
         }
-    }, 800);
+    }
 }
 
 /**
  * Download emergency card as a PDF
  */
-function downloadEmergencyCard() {
+async function downloadEmergencyCard() {
     showNotification('Preparing your emergency card for download...', 'info');
     
-    // In a real app, this would generate and download a PDF
-    // For demo purposes, we'll just simulate the process
-    setTimeout(() => {
-        showNotification('Your emergency card is ready for download', 'success');
-    }, 1200);
+    // In a real implementation, we would call an API endpoint that returns a PDF
+    try {
+        // Simulate an API call that returns a PDF file
+        const response = await fetch(`${API_BASE_URL}/emergency-card/download`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response.ok) {
+            // Convert response to blob
+            const blob = await response.blob();
+            
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'emergency_card.pdf';
+            
+            // Add to DOM and trigger download
+            document.body.appendChild(a);
+            a.click();
+            
+            // Clean up
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            showNotification('Your emergency card has been downloaded', 'success');
+        } else {
+            throw new Error('Failed to download emergency card');
+        }
+    } catch (error) {
+        console.error('Download error:', error);
+        showNotification('Could not download emergency card. Please try again later.', 'error');
+    }
+}
+
+/**
+ * Fetch user profile data
+ */
+async function fetchUserData() {
+    const userData = await apiRequest('/auth/profile');
+    if (userData) {
+        // Update user info in sidebar
+        document.querySelector('.user-name').textContent = userData.name || 'User';
+        document.querySelector('.user-id').textContent = `Health ID: ${userData.healthId || 'N/A'}`;
+        
+        // Update welcome message
+        const welcomeMessage = document.querySelector('.welcome-message h3');
+        if (welcomeMessage) {
+            welcomeMessage.textContent = `Welcome back, ${userData.name?.split(' ')[0] || 'User'}!`;
+        }
+    }
 } 

@@ -1,136 +1,86 @@
-# Dhanvantri Healthcare Platform Backend
+# Dhanvantri Healthcare Platform - Backend
 
-This repository contains the backend API for the Dhanvantri Healthcare Platform, a comprehensive healthcare management system.
+Backend services for the Dhanvantri Healthcare Platform, a comprehensive healthcare management system.
 
-## Technology Stack
+## Features
 
-- **Framework**: Express.js (Node.js)
-- **Database**: MongoDB with Mongoose
-- **Authentication**: JWT with bcrypt
-- **Documentation**: Swagger/OpenAPI
-- **Validation**: Express Validator
-- **File Upload**: Multer
-- **Security**: Helmet, CORS
-- **Logging**: Morgan
+- Patient, Doctor, and Hospital management
+- Appointment scheduling and management
+- Medical records and prescriptions
+- Laboratory reports
+- Notifications system
+- Health metrics tracking
+- Emergency medical card with QR code access
 
-## Getting Started
+## Tech Stack
+
+- Node.js & Express.js
+- MongoDB with Mongoose ODM
+- JWT Authentication
+- RESTful API architecture
+- Swagger API documentation
+
+## Setup Instructions
 
 ### Prerequisites
-
 - Node.js (v14+)
 - MongoDB
 
 ### Installation
 
 1. Clone the repository
-2. Install dependencies
+   ```
+   git clone https://github.com/yourusername/dhanvantri.git
+   ```
 
-```bash
-npm install
+2. Navigate to the backend directory
+   ```
+   cd dhanvantri/backend
+   ```
+
+3. Install dependencies
+   ```
+   npm install
+   ```
+
+4. Create a `.env` file with the following variables:
+   ```
+   PORT=3000
+   MONGODB_URI=mongodb://localhost:27017/dhanvantri
+   JWT_SECRET=yourSecretKey
+   NODE_ENV=development
+   API_URL=http://localhost:3000/api/v1
+   ```
+
+5. Start the development server
+   ```
+   npm run dev
+   ```
+
+6. Access the API documentation at `http://localhost:3000/api-docs`
+
+### Automated Setup
+
+Alternatively, you can use the provided setup script:
+
+```
+bash setup-backend.sh
 ```
 
-3. Create a `.env` file in the root directory with the following variables:
+## API Overview
 
-```
-PORT=3000
-MONGODB_URI=mongodb://localhost:27017/dhanvantri
-JWT_SECRET=your_jwt_secret
-NODE_ENV=development
-API_URL=http://localhost:3000/api/v1
-```
-
-### Running the Server
-
-Development mode:
-
-```bash
-npm run dev
-```
-
-Production mode:
-
-```bash
-npm start
-```
-
-### Seeding the Database
-
-To seed the database with sample data:
-
-```bash
-npm run seed
-```
-
-## API Documentation
-
-API documentation is available at `/api-docs` when the server is running.
-
-## API Endpoints
-
-### Authentication
-
-- `POST /api/v1/auth/register` - Register a new user (patient/doctor/hospital)
-- `POST /api/v1/auth/login` - User login
-- `GET /api/v1/auth/profile` - Get user profile
-- `PUT /api/v1/auth/profile` - Update user profile
-
-### Patients
-
-- `GET /api/v1/patients/dashboard` - Get patient dashboard data
-- `GET /api/v1/patients/appointments` - List patient appointments
-- `GET /api/v1/patients/medical-records` - Get medical records
-- `GET /api/v1/patients/prescriptions` - List prescriptions
-- `GET /api/v1/patients/lab-reports` - List lab reports
-
-### Doctors
-
-- `GET /api/v1/doctors/dashboard` - Get doctor dashboard data
-- `GET /api/v1/doctors/appointments` - List doctor appointments
-- `GET /api/v1/doctors/patients` - List doctor's patients
-- `POST /api/v1/doctors/medical-records` - Create medical record
-- `POST /api/v1/doctors/prescriptions` - Create prescription
-
-### Hospitals
-
-- `GET /api/v1/hospitals/dashboard` - Get hospital dashboard data
-- `GET /api/v1/hospitals/doctors` - List hospital doctors
-- `GET /api/v1/hospitals/appointments` - List hospital appointments
-- `POST /api/v1/hospitals/doctors` - Add doctor to hospital
-
-### Appointments
-
-- `POST /api/v1/appointments` - Create appointment
-- `GET /api/v1/appointments/:id` - Get appointment
-- `PUT /api/v1/appointments/:id` - Update appointment
-- `DELETE /api/v1/appointments/:id` - Cancel appointment
-
-### Medical Records
-
-- `GET /api/v1/medical-records/:id` - Get medical record
-- `PUT /api/v1/medical-records/:id` - Update medical record
-- `DELETE /api/v1/medical-records/:id` - Delete medical record
-
-### Prescriptions
-
-- `GET /api/v1/prescriptions/:id` - Get prescription
-- `PUT /api/v1/prescriptions/:id` - Update prescription
-- `DELETE /api/v1/prescriptions/:id` - Delete prescription
-
-### Lab Reports
-
-- `POST /api/v1/lab-reports` - Create lab report
-- `GET /api/v1/lab-reports/:id` - Get lab report
-- `PUT /api/v1/lab-reports/:id` - Update lab report
-- `DELETE /api/v1/lab-reports/:id` - Delete lab report
-
-## Deployment
-
-The API can be deployed using Docker:
-
-```bash
-docker-compose up -d
-```
+- **Authentication**: User registration, login, password reset
+- **Patients**: Profile management, medical history
+- **Doctors**: Profile management, availability settings
+- **Hospitals**: Profile management, affiliated doctors
+- **Appointments**: Scheduling, rescheduling, cancellation
+- **Medical Records**: Creation, update, access control
+- **Prescriptions**: Creation, renewal, history
+- **Lab Reports**: Upload, view, share
+- **Notifications**: System and user-generated alerts
+- **Health Metrics**: Track vital signs and health parameters
+- **Emergency Card**: QR-code based emergency medical information access
 
 ## License
 
-This project is licensed under the MIT License. 
+MIT 

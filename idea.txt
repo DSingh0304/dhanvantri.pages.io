@@ -47,28 +47,6 @@ Each doctor needs a **customized dashboard** displaying their patients and medic
    - Automated follow-up reminders for both doctor and patient.
 
 
-## Incomplete Backend Features
-
-1. **Patient Dashboard Statistics**:
-   - The dashboard shows counts of appointments, medications, lab tests, and records
-   - The API returns the full records but doesn't provide summarized statistics
-
-2. **Doctor's Schedule Management**:
-   - Doctor dashboard shows a schedule tab
-   - The `updateAvailability` API exists but needs enhancements for weekly/recurring schedules
-
-3. **Settings/Profile Management**:
-   - Both dashboards have settings sections
-   - Basic profile update exists but no comprehensive settings management
-
-4. **Insurance Information Management**:
-   - Patient dashboard has insurance section
-   - Patient model has `insuranceDetails` but no dedicated API for insurance management
-
-5. **Reporting and Analytics**:
-   - Doctor dashboard displays various statistics but lacks comprehensive reporting
-   - Need analytics endpoints for patient trends, appointment patterns, etc.
-
 6. **Hospital Dashboard**:
    - Hospital user type exists but lacks dedicated dashboard APIs
    - Need more comprehensive hospital management features
