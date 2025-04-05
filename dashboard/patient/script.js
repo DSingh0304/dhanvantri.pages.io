@@ -4,75 +4,157 @@ let authToken = localStorage.getItem('authToken');
 
 // API Request helper
 async function apiRequest(endpoint, method = 'GET', data = null) {
-    const url = `${API_BASE_URL}${endpoint}`;
-    const options = {
-        method,
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    };
-    
-    // Add auth token if available
-    if (authToken) {
-        options.headers['Authorization'] = `Bearer ${authToken}`;
-    }
-    
-    // Add body for non-GET requests
-    if (data && method !== 'GET') {
-        options.body = JSON.stringify(data);
-    }
+    const apiUrl = 'https://api.ysinghc.me/v1';
+    const url = `${apiUrl}${endpoint}`;
     
     try {
+        const options = {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            }
+        };
+        
+        if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+            options.body = JSON.stringify(data);
+        }
+        
         const response = await fetch(url, options);
         
-        // Handle unauthorized responses
+        // Handle token expiration
         if (response.status === 401) {
-            // Clear token and redirect to login
-            localStorage.removeItem('authToken');
-            window.location.href = '../../login/';
+            // Try to refresh token
+            const refreshed = await refreshToken();
+            if (refreshed) {
+                // Retry with new token
+                options.headers.Authorization = `Bearer ${authToken}`;
+                const retryResponse = await fetch(url, options);
+                if (retryResponse.ok) {
+                    return await retryResponse.json();
+                }
+            }
+            
+            // If refresh failed or retry failed, redirect to login
+            showNotification('Your session has expired. Please log in again.', 'error');
+            setTimeout(() => {
+                logoutUser(true);
+            }, 2000);
             return null;
         }
         
-        // Parse JSON response
-        const result = await response.json();
-        
-        // Handle error responses
         if (!response.ok) {
-            throw new Error(result.message || 'API request failed');
+            const errorData = await response.json().catch(() => ({}));
+            const errorMessage = errorData.message || `API request failed with status ${response.status}`;
+            console.error('API Error:', errorMessage);
+            showNotification(errorMessage, 'error');
+            return null;
         }
         
-        return result;
+        // Check if response is empty
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return await response.json();
+        }
+        
+        return true; // Success with no content
     } catch (error) {
         console.error('API Request Error:', error);
-        showNotification(error.message || 'Failed to connect to server', 'error');
+        showNotification('Unable to connect to the server. Please check your connection.', 'error');
         return null;
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+/**
+ * Refresh the authentication token
+ */
+async function refreshToken() {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) {
+        return false;
+    }
+    
+    try {
+        const response = await fetch('https://api.ysinghc.me/v1/auth/refresh', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ refreshToken })
+        });
+        
+        if (!response.ok) {
+            return false;
+        }
+        
+        const data = await response.json();
+        if (data.token) {
+            localStorage.setItem('authToken', data.token);
+            authToken = data.token;
+            return true;
+        }
+        
+        return false;
+    } catch (error) {
+        console.error('Token refresh error:', error);
+        return false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
     // Check if user is authenticated
     if (!authToken) {
         window.location.href = '../../login/';
         return;
     }
     
-    // Initialize dashboard functionality
+    // Initialize UI components
     initSidebar();
-    initNotifications();
-    initCharts();
     initTabNavigation();
     initEventListeners();
     initSearch();
+    initAppointmentForm();
     initEmergencyCard();
     
-    // Fetch user data
-    fetchUserData();
+    // Show loading indicator
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'loading-overlay';
+    loadingOverlay.innerHTML = '<div class="spinner"></div><p>Loading your dashboard...</p>';
+    document.body.appendChild(loadingOverlay);
     
-    // Show dashboard content (simulate loading)
-    setTimeout(() => {
-        document.querySelector('.loading-overlay')?.classList.add('hidden');
+    try {
+        // Fetch all necessary data in parallel
+        const [userData, healthMetrics, appointments, prescriptions] = await Promise.all([
+            fetchUserData(),
+            apiRequest('/health-metrics/summary?timespan=6m'),
+            fetchAppointments(),
+            apiRequest('/prescriptions')
+        ]);
+        
+        // Once data is loaded, initialize components that need the data
+        if (healthMetrics) {
+            initCharts(healthMetrics);
+        }
+        
+        // Update medications list
+        if (prescriptions && prescriptions.length > 0) {
+            updateMedicationsList(prescriptions);
+        }
+        
+        // Initialize notifications after user data is loaded
+        await initNotifications();
+        
+        // Show dashboard content
+        document.querySelector('.loading-overlay')?.remove();
         document.querySelector('.content-wrapper')?.classList.add('page-active');
-    }, 500);
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        showNotification('Some data could not be loaded. Please refresh the page or try again later.', 'error');
+        
+        // Show dashboard anyway, even with partial data
+        document.querySelector('.loading-overlay')?.remove();
+        document.querySelector('.content-wrapper')?.classList.add('page-active');
+    }
 });
 
 /**
@@ -147,265 +229,343 @@ function initSidebar() {
  * Initialize notifications
  */
 async function initNotifications() {
+    // Get notification elements
     const notificationBtn = document.querySelector('.notification-btn');
-    const notificationPanel = document.querySelector('.notification-panel');
+    const notificationBadge = notificationBtn.querySelector('.badge');
+    const notificationPanel = document.querySelector('#notificationPanel');
+    const notificationList = notificationPanel.querySelector('.notification-list');
+    const markAllReadBtn = notificationPanel.querySelector('.mark-all-read');
     
-    if (notificationBtn && notificationPanel) {
-        // Load notifications
-        await loadNotifications(notificationPanel);
+    // Fetch notifications
+    const notifications = await apiRequest('/notifications');
+    
+    if (!notifications || notifications.length === 0) {
+        // Hide badge if no notifications
+        notificationBadge.classList.add('hidden');
         
-        notificationBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            notificationPanel.classList.toggle('show');
-            
-            // Close other panels
-            document.querySelectorAll('.dropdown-panel').forEach(panel => {
-                if (panel !== notificationPanel) {
-                    panel.classList.remove('show');
-                }
-            });
-        });
-        
-        // Close when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!notificationPanel.contains(e.target) && e.target !== notificationBtn) {
-                notificationPanel.classList.remove('show');
-            }
-        });
-        
-        // Mark all as read
-        const markReadBtn = notificationPanel.querySelector('.mark-all-read');
-        if (markReadBtn) {
-            markReadBtn.addEventListener('click', async function() {
-                await apiRequest('/notifications/mark-all-read', 'PUT');
-                loadNotifications(notificationPanel);
-                
-                // Update badge
-                const badge = notificationBtn.querySelector('.badge');
-                if (badge) {
-                    badge.textContent = '0';
-                    badge.classList.add('hidden');
-                }
-            });
-        }
+        // Show empty state
+        notificationList.innerHTML = `
+            <div class="notification-item" style="justify-content: center;">
+                <p style="text-align: center; color: var(--text-medium); padding: 20px;">
+                    No notifications to display
+                </p>
+            </div>
+        `;
+        return;
     }
-}
-
-/**
- * Load notifications from API
- */
-async function loadNotifications(panel) {
-    const notificationList = panel.querySelector('.notification-list');
-    const badge = document.querySelector('.notification-btn .badge');
     
-    if (notificationList) {
-        notificationList.innerHTML = '<div class="loading">Loading notifications...</div>';
-        
-        const response = await apiRequest('/notifications?limit=5');
-        
-        if (response) {
-            notificationList.innerHTML = '';
-            
-            if (response.notifications.length === 0) {
-                notificationList.innerHTML = '<div class="no-records">No notifications</div>';
-            } else {
-                response.notifications.forEach(notification => {
-                    const item = document.createElement('div');
-                    item.className = `notification-item ${notification.isRead ? '' : 'unread'}`;
-                    item.innerHTML = `
-                        <div class="notification-icon">
-                            <i class="fas fa-${notification.icon || 'bell'}"></i>
-                        </div>
-                        <div class="notification-content">
-                            <p>${notification.message}</p>
-                            <span class="notification-time">${formatTimeAgo(notification.createdAt)}</span>
-                        </div>
-                    `;
-                    
-                    // Add click handler to mark as read
-                    item.addEventListener('click', async () => {
-                        if (!notification.isRead) {
-                            await apiRequest(`/notifications/${notification._id}`, 'PUT');
-                            item.classList.remove('unread');
-                        }
-                    });
-                    
-                    notificationList.appendChild(item);
-                });
-            }
-            
-            // Update badge
-            if (badge && response.unreadCount) {
-                badge.textContent = response.unreadCount;
-                badge.classList.remove('hidden');
-            } else if (badge) {
-                badge.textContent = '0';
-                badge.classList.add('hidden');
-            }
-        } else {
-            notificationList.innerHTML = '<div class="error">Failed to load notifications</div>';
-        }
-    }
-}
-
-/**
- * Format time ago
- */
-function formatTimeAgo(dateString) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffSec = Math.floor(diffMs / 1000);
-    const diffMin = Math.floor(diffSec / 60);
-    const diffHour = Math.floor(diffMin / 60);
-    const diffDay = Math.floor(diffHour / 24);
+    // Count unread notifications
+    const unreadCount = notifications.filter(notification => !notification.isRead).length;
     
-    if (diffDay > 0) {
-        return diffDay === 1 ? 'Yesterday' : `${diffDay} days ago`;
-    } else if (diffHour > 0) {
-        return `${diffHour} ${diffHour === 1 ? 'hour' : 'hours'} ago`;
-    } else if (diffMin > 0) {
-        return `${diffMin} ${diffMin === 1 ? 'minute' : 'minutes'} ago`;
+    // Update badge
+    if (unreadCount > 0) {
+        notificationBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+        notificationBadge.classList.remove('hidden');
     } else {
+        notificationBadge.classList.add('hidden');
+    }
+    
+    // Clear notification list
+    notificationList.innerHTML = '';
+    
+    // Add notifications to list (limit to 5 most recent)
+    notifications.slice(0, 5).forEach(notification => {
+        const item = document.createElement('div');
+        item.className = `notification-item${notification.isRead ? '' : ' unread'}`;
+        
+        // Determine icon based on notification type
+        let iconClass, bgColor;
+        switch (notification.type) {
+            case 'appointment':
+                iconClass = 'fa-calendar-check';
+                bgColor = 'var(--bg-primary)';
+                break;
+            case 'medication':
+                iconClass = 'fa-pills';
+                bgColor = 'var(--bg-success)';
+                break;
+            case 'lab':
+                iconClass = 'fa-flask';
+                bgColor = 'var(--bg-info)';
+                break;
+            case 'message':
+                iconClass = 'fa-envelope';
+                bgColor = 'var(--bg-warning)';
+                break;
+            default:
+                iconClass = 'fa-bell';
+                bgColor = 'var(--bg-danger)';
+        }
+        
+        // Format time
+        const notificationTime = formatRelativeTime(new Date(notification.createdAt));
+        
+        item.innerHTML = `
+            <div class="notification-icon" style="background-color: ${bgColor}">
+                <i class="fas ${iconClass}"></i>
+            </div>
+            <div class="notification-content">
+                <p>${notification.message}</p>
+                <span class="notification-time">${notificationTime}</span>
+            </div>
+        `;
+        
+        notificationList.appendChild(item);
+    });
+    
+    // Add event listeners
+    notificationBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        notificationPanel.classList.toggle('show');
+    });
+    
+    // Close when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!notificationBtn.contains(e.target) && !notificationPanel.contains(e.target)) {
+            notificationPanel.classList.remove('show');
+        }
+    });
+    
+    // Mark all as read
+    markAllReadBtn.addEventListener('click', async function() {
+        await apiRequest('/notifications/mark-read', 'POST');
+        
+        // Update UI
+        notificationBadge.classList.add('hidden');
+        document.querySelectorAll('.notification-item').forEach(item => {
+            item.classList.remove('unread');
+        });
+        
+        showNotification('All notifications marked as read', 'success');
+    });
+}
+
+/**
+ * Format relative time for notifications
+ */
+function formatRelativeTime(date) {
+    const now = new Date();
+    const diffSeconds = Math.floor((now - date) / 1000);
+    
+    if (diffSeconds < 60) {
         return 'Just now';
     }
+    
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    if (diffMinutes < 60) {
+        return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
+    }
+    
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) {
+        return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+    }
+    
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) {
+        return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+    }
+    
+    return date.toLocaleDateString();
 }
 
 /**
  * Initialize charts
  */
-async function initCharts() {
+function initCharts(metrics) {
     // Check if Chart.js is available
     if (typeof Chart === 'undefined') {
         console.warn('Chart.js is not available. Charts will not be rendered.');
         return;
     }
     
-    // Fetch health metrics data
-    const metrics = await apiRequest('/health-metrics/summary');
-    
-    if (!metrics) {
-        console.warn('Failed to load health metrics data');
+    if (!metrics || Object.keys(metrics).length === 0) {
+        console.warn('No health metrics data available');
+        const chartContainers = document.querySelectorAll('.chart-container');
+        chartContainers.forEach(container => {
+            container.innerHTML = '<div class="no-data-message">No health data available. Track your health metrics to see trends here.</div>';
+        });
         return;
     }
     
     // Blood Pressure Chart
-    const bpChartEl = document.getElementById('bloodPressureChart');
-    if (bpChartEl && metrics.bloodPressure) {
-        const bpChart = new Chart(bpChartEl, {
-            type: 'line',
-            data: {
-                labels: metrics.bloodPressure.labels || [],
-                datasets: [
-                    {
-                        label: 'Systolic',
-                        data: metrics.bloodPressure.values?.map(v => v.systolic) || [],
-                        borderColor: '#1976D2',
-                        backgroundColor: 'rgba(25, 118, 210, 0.1)',
-                        tension: 0.3,
-                        fill: false
+    if (metrics.bloodPressure && metrics.bloodPressure.length > 0) {
+        const bpCtx = document.getElementById('bloodPressureChart');
+        if (bpCtx) {
+            const dates = metrics.bloodPressure.map(item => new Date(item.date).toLocaleDateString());
+            const systolic = metrics.bloodPressure.map(item => item.values.systolic);
+            const diastolic = metrics.bloodPressure.map(item => item.values.diastolic);
+            
+            new Chart(bpCtx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Systolic',
+                            data: systolic,
+                            borderColor: '#4361ee',
+                            backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Diastolic',
+                            data: diastolic,
+                            borderColor: '#3f37c9',
+                            backgroundColor: 'rgba(63, 55, 201, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: Math.min(...diastolic) - 10,
+                            max: Math.max(...systolic) + 10,
+                            title: {
+                                display: true,
+                                text: 'mmHg'
+                            }
+                        }
                     },
-                    {
-                        label: 'Diastolic',
-                        data: metrics.bloodPressure.values?.map(v => v.diastolic) || [],
-                        borderColor: '#F44336',
-                        backgroundColor: 'rgba(244, 67, 54, 0.1)',
-                        tension: 0.3,
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        min: 50,
-                        title: {
-                            display: true,
-                            text: 'mmHg'
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    return `Blood Pressure on ${tooltipItems[0].label}`;
+                                }
+                            }
                         }
                     }
                 }
-            }
-        });
-    }
-    
-    // Weight Chart
-    const weightChartEl = document.getElementById('weightChart');
-    if (weightChartEl && metrics.weight) {
-        const weightChart = new Chart(weightChartEl, {
-            type: 'line',
-            data: {
-                labels: metrics.weight.labels || [],
-                datasets: [{
-                    label: `Weight (${metrics.weight.unit || 'kg'})`,
-                    data: metrics.weight.values || [],
-                    borderColor: '#4CAF50',
-                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                    tension: 0.3,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        title: {
-                            display: true,
-                            text: metrics.weight.unit || 'kg'
-                        }
-                    }
-                }
-            }
-        });
+            });
+        }
+    } else {
+        const bpContainer = document.getElementById('bloodPressureChart')?.closest('.chart-container');
+        if (bpContainer) {
+            bpContainer.innerHTML = '<div class="no-data-message">No blood pressure data available.</div>';
+        }
     }
     
     // Blood Sugar Chart
-    const sugarChartEl = document.getElementById('bloodSugarChart');
-    if (sugarChartEl && metrics.bloodSugar) {
-        const sugarChart = new Chart(sugarChartEl, {
-            type: 'line',
-            data: {
-                labels: metrics.bloodSugar.labels || [],
-                datasets: [{
-                    label: `Blood Sugar (${metrics.bloodSugar.unit || 'mg/dL'})`,
-                    data: metrics.bloodSugar.values || [],
-                    borderColor: '#FF9800',
-                    backgroundColor: 'rgba(255, 152, 0, 0.1)',
-                    tension: 0.3,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        title: {
-                            display: true,
-                            text: metrics.bloodSugar.unit || 'mg/dL'
+    if (metrics.bloodSugar && metrics.bloodSugar.length > 0) {
+        const bsCtx = document.getElementById('bloodSugarChart');
+        if (bsCtx) {
+            const dates = metrics.bloodSugar.map(item => new Date(item.date).toLocaleDateString());
+            const values = metrics.bloodSugar.map(item => item.value);
+            
+            new Chart(bsCtx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Blood Sugar',
+                            data: values,
+                            borderColor: '#f72585',
+                            backgroundColor: 'rgba(247, 37, 133, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: Math.min(...values) - 5,
+                            max: Math.max(...values) + 5,
+                            title: {
+                                display: true,
+                                text: 'mg/dL'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    return `Blood Sugar on ${tooltipItems[0].label}`;
+                                }
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
+    } else {
+        const bsContainer = document.getElementById('bloodSugarChart')?.closest('.chart-container');
+        if (bsContainer) {
+            bsContainer.innerHTML = '<div class="no-data-message">No blood sugar data available.</div>';
+        }
     }
     
-    // Time range select event
-    const timeRangeSelect = document.getElementById('timeRangeSelect');
-    if (timeRangeSelect) {
-        timeRangeSelect.addEventListener('change', async function() {
-            const timespan = this.value;
-            const updatedMetrics = await apiRequest(`/health-metrics/summary?timespan=${timespan}`);
+    // Weight Chart
+    if (metrics.weight && metrics.weight.length > 0) {
+        const weightCtx = document.getElementById('weightChart');
+        if (weightCtx) {
+            const dates = metrics.weight.map(item => new Date(item.date).toLocaleDateString());
+            const values = metrics.weight.map(item => item.value);
             
-            if (updatedMetrics) {
-                // You would update all charts here with the new data
-                showNotification(`Data updated for ${this.options[this.selectedIndex].text}`, 'info');
-            }
-        });
+            new Chart(weightCtx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Weight',
+                            data: values,
+                            borderColor: '#4CC9F0',
+                            backgroundColor: 'rgba(76, 201, 240, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: Math.min(...values) - 2,
+                            max: Math.max(...values) + 2,
+                            title: {
+                                display: true,
+                                text: 'kg'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    return `Weight on ${tooltipItems[0].label}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    } else {
+        const weightContainer = document.getElementById('weightChart')?.closest('.chart-container');
+        if (weightContainer) {
+            weightContainer.innerHTML = '<div class="no-data-message">No weight data available.</div>';
+        }
     }
 }
 
@@ -716,19 +876,133 @@ function closeModal(modalId) {
 }
 
 /**
+ * Fetch user data 
+ */
+async function fetchUserData() {
+    try {
+        // Fetch user profile data
+        const userData = await apiRequest('/patients/profile');
+        
+        if (!userData) {
+            console.error('Failed to fetch user data');
+            return null;
+        }
+        
+        // Update UI with user data
+        updateUserProfile(userData);
+        
+        return userData;
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        showNotification('Failed to load your profile data', 'error');
+        return null;
+    }
+}
+
+/**
+ * Update user profile in UI
+ */
+function updateUserProfile(userData) {
+    // Update username
+    const usernameElements = document.querySelectorAll('.user-info h3');
+    usernameElements.forEach(element => {
+        element.textContent = userData.name || 'Patient';
+    });
+    
+    // Update user image if available
+    if (userData.profileImage) {
+        const avatarImages = document.querySelectorAll('.avatar img');
+        avatarImages.forEach(img => {
+            img.src = userData.profileImage;
+            img.alt = userData.name || 'Patient';
+        });
+    }
+    
+    // Update welcome message
+    const welcomeMessage = document.querySelector('.welcome-message h3');
+    if (welcomeMessage) {
+        const greeting = getTimeBasedGreeting();
+        welcomeMessage.textContent = `${greeting}, ${userData.name.split(' ')[0] || 'Patient'}`;
+    }
+    
+    // Update dashboard with patient-specific information
+    if (userData.medicalId) {
+        const medicalIdElements = document.querySelectorAll('.medical-id');
+        medicalIdElements.forEach(element => {
+            element.textContent = userData.medicalId;
+        });
+    }
+    
+    // Update emergency card information
+    const emergencyCardElements = document.querySelectorAll('.emergency-card');
+    if (emergencyCardElements.length > 0 && userData) {
+        // Set basic information
+        const patientInfoContainers = document.querySelectorAll('.patient-info');
+        patientInfoContainers.forEach(container => {
+            container.innerHTML = `
+                <div class="info-group">
+                    <label>Patient ID:</label>
+                    <span>${userData.medicalId || 'Not assigned'}</span>
+                </div>
+                <div class="info-group">
+                    <label>Full Name:</label>
+                    <span>${userData.name || 'Not available'}</span>
+                </div>
+                <div class="info-group">
+                    <label>Date of Birth:</label>
+                    <span>${userData.dateOfBirth ? new Date(userData.dateOfBirth).toLocaleDateString() : 'Not available'}</span>
+                </div>
+                <div class="info-group">
+                    <label>Blood Type:</label>
+                    <span>${userData.bloodType || 'Not available'}</span>
+                </div>
+                <div class="info-group">
+                    <label>Allergies:</label>
+                    <span>${userData.allergies && userData.allergies.length ? userData.allergies.join(', ') : 'None recorded'}</span>
+                </div>
+                <div class="info-group">
+                    <label>Emergency Contact:</label>
+                    <span>${userData.emergencyContact?.name || 'Not available'} ${userData.emergencyContact?.phone ? `(${userData.emergencyContact.phone})` : ''}</span>
+                </div>
+            `;
+        });
+    }
+}
+
+/**
+ * Get time-based greeting
+ */
+function getTimeBasedGreeting() {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+}
+
+/**
  * Logout user
  */
-function logoutUser() {
-    if (confirm('Are you sure you want to logout?')) {
-        showNotification('Logging you out...', 'info');
-        
-        // Clear authentication data
-        localStorage.removeItem('authToken');
-        
-        // Redirect to login page
-        setTimeout(() => {
-            window.location.href = '../../login/';
-        }, 1000);
+async function logoutUser(force = false) {
+    if (force || confirm('Are you sure you want to log out?')) {
+        try {
+            showNotification('Logging you out...', 'info');
+            
+            // Call logout API to invalidate token
+            await apiRequest('/auth/logout', 'POST');
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            // Clear all auth data
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('userData');
+            sessionStorage.clear();
+            
+            // Redirect to login page
+            setTimeout(() => {
+                window.location.href = '../../login/';
+            }, 1000);
+        }
     }
 }
 
@@ -911,265 +1185,461 @@ function showSearchResults(query) {
 /**
  * Initialize emergency card functionality
  */
-function initEmergencyCard() {
-    // Initialize card elements
-    const regenerateBtn = document.getElementById('regenerateCardBtn');
-    const downloadBtn = document.getElementById('downloadCardBtn');
-    const accessLevelSelect = document.getElementById('accessLevelSelect');
-    const cardActiveToggle = document.getElementById('cardActiveToggle');
-    const cardActiveStatus = document.getElementById('cardActiveStatus');
+async function initEmergencyCard() {
+    // Get emergency card elements
+    const emergencyCardSection = document.querySelector('.emergency-card-section');
+    if (!emergencyCardSection) return;
     
-    // Load emergency card data
-    loadEmergencyCard();
+    // Get elements
+    const cardStatusEl = document.querySelector('.emergency-card .status');
+    const qrCodeContainer = document.querySelector('.qr-code');
+    const expiresEl = document.querySelector('.expires');
+    const regenerateBtn = document.querySelector('#regenerateCard');
+    const toggleCardBtn = document.querySelector('#toggleCardStatus');
+    const downloadBtn = document.querySelector('#downloadCard');
+    const accessLogsTable = document.querySelector('.access-logs-table tbody');
+    
+    // Fetch emergency card data
+    const cardData = await apiRequest('/emergency-card');
+    
+    if (!cardData) {
+        // Create a new emergency card if one doesn't exist
+        const newCard = await apiRequest('/emergency-card', 'POST');
+        if (newCard) {
+            updateEmergencyCardUI(newCard);
+            showNotification('Emergency card created successfully', 'success');
+        } else {
+            showNotification('Failed to create emergency card', 'error');
+        }
+    } else {
+        // Update UI with existing card data
+        updateEmergencyCardUI(cardData);
+    }
+    
+    // Regenerate card handler
+    if (regenerateBtn) {
+        regenerateBtn.addEventListener('click', async function() {
+            if (confirm('Are you sure you want to regenerate your emergency card? This will invalidate the current QR code.')) {
+                const newCard = await apiRequest('/emergency-card/regenerate', 'POST');
+                if (newCard) {
+                    updateEmergencyCardUI(newCard);
+                    showNotification('Emergency card regenerated successfully', 'success');
+                } else {
+                    showNotification('Failed to regenerate emergency card', 'error');
+                }
+            }
+        });
+    }
+    
+    // Toggle card status handler
+    if (toggleCardBtn) {
+        toggleCardBtn.addEventListener('change', async function() {
+            const isActive = this.checked;
+            const status = await apiRequest('/emergency-card/status', 'PATCH', { isActive });
+            
+            if (status) {
+                // Update UI
+                if (cardStatusEl) {
+                    cardStatusEl.textContent = isActive ? 'ACTIVE' : 'INACTIVE';
+                    cardStatusEl.className = `status ${isActive ? 'active' : 'inactive'}`;
+                }
+                
+                // Update status text
+                const statusTextEl = document.querySelector('#cardActiveStatus');
+                if (statusTextEl) {
+                    statusTextEl.textContent = isActive ? 'Active' : 'Inactive';
+                }
+                
+                showNotification(`Emergency card ${isActive ? 'activated' : 'deactivated'} successfully`, 'success');
+            } else {
+                // Revert toggle if failed
+                this.checked = !isActive;
+                showNotification('Failed to update emergency card status', 'error');
+            }
+        });
+    }
+    
+    // Download card handler
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', function() {
+            showNotification('Emergency card PDF is being generated...', 'info');
+            
+            // In a real implementation, this would download a PDF
+            setTimeout(() => {
+                showNotification('Emergency card downloaded successfully', 'success');
+            }, 1500);
+        });
+    }
     
     // Load access logs
-    loadAccessLogs();
-    
-    // Setup event listeners
-    if (regenerateBtn) {
-        regenerateBtn.addEventListener('click', regenerateEmergencyCard);
-    }
-    
-    if (downloadBtn) {
-        downloadBtn.addEventListener('click', downloadEmergencyCard);
-    }
-    
-    if (accessLevelSelect) {
-        accessLevelSelect.addEventListener('change', function() {
-            updateCardSettings({
-                accessLevel: this.value
-            });
-        });
-    }
-    
-    if (cardActiveToggle) {
-        cardActiveToggle.addEventListener('change', function() {
-            const isActive = this.checked;
-            cardActiveStatus.textContent = isActive ? 'Active' : 'Inactive';
-            
-            updateCardSettings({
-                isActive: isActive
-            });
-        });
-    }
+    await loadAccessLogs(accessLogsTable);
 }
 
 /**
- * Load emergency card data from the API
- */
-async function loadEmergencyCard() {
-    // Show loading state
-    const qrCodeContainer = document.getElementById('qrCode');
-    if (qrCodeContainer) {
-        qrCodeContainer.innerHTML = '<div class="loading-spinner"></div>';
-    }
-    
-    // Fetch emergency card data from API
-    const response = await apiRequest('/emergency-card');
-    
-    if (response && response.emergencyInfo) {
-        // Update UI with data
-        updateEmergencyCardUI({
-            patientName: response.emergencyInfo.patientName,
-            healthId: response.emergencyInfo.healthId,
-            bloodGroup: response.emergencyInfo.bloodGroup,
-            emergencyContact: response.emergencyInfo.emergencyContact,
-            accessCode: response.emergencyInfo.accessCode,
-            expiresAt: response.emergencyCard.expiresAt,
-            qrCode: response.emergencyInfo.qrCode,
-            accessLevel: response.emergencyCard.accessLevel,
-            isActive: response.emergencyCard.isActive
-        });
-    } else {
-        // Show error in QR code area
-        if (qrCodeContainer) {
-            qrCodeContainer.innerHTML = '<div class="error-message">Failed to load emergency card</div>';
-        }
-    }
-}
-
-/**
- * Update the emergency card UI with data
+ * Update emergency card UI
  */
 function updateEmergencyCardUI(cardData) {
-    // Update patient info
-    document.getElementById('patientName').textContent = cardData.patientName;
-    document.getElementById('healthId').textContent = cardData.healthId;
-    document.getElementById('bloodGroup').textContent = cardData.bloodGroup;
-    document.getElementById('emergencyContact').textContent = cardData.emergencyContact;
+    // Update card status
+    const cardStatusEl = document.querySelector('.emergency-card .status');
+    if (cardStatusEl) {
+        cardStatusEl.textContent = cardData.isActive ? 'ACTIVE' : 'INACTIVE';
+        cardStatusEl.className = `status ${cardData.isActive ? 'active' : 'inactive'}`;
+    }
     
-    // Format expiry date
-    const expiryDate = new Date(cardData.expiresAt);
-    document.getElementById('expiryDate').textContent = expiryDate.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    // Update toggle switch
+    const toggleCardBtn = document.querySelector('#toggleCardStatus');
+    if (toggleCardBtn) {
+        toggleCardBtn.checked = cardData.isActive;
+        
+        const statusTextEl = document.querySelector('#cardActiveStatus');
+        if (statusTextEl) {
+            statusTextEl.textContent = cardData.isActive ? 'Active' : 'Inactive';
+        }
+    }
     
     // Update QR code
-    const qrCodeContainer = document.getElementById('qrCode');
-    if (qrCodeContainer) {
-        qrCodeContainer.innerHTML = `<img src="${cardData.qrCode}" alt="Emergency QR Code">`;
+    const qrCodeContainer = document.querySelector('.qr-code');
+    if (qrCodeContainer && cardData.qrCodeUrl) {
+        qrCodeContainer.innerHTML = `<img src="${cardData.qrCodeUrl}" alt="Emergency Access QR Code">`;
     }
     
-    // Update settings
-    document.getElementById('accessLevelSelect').value = cardData.accessLevel;
-    document.getElementById('cardActiveToggle').checked = cardData.isActive;
-    document.getElementById('cardActiveStatus').textContent = cardData.isActive ? 'Active' : 'Inactive';
-    
-    // Update card status
-    const cardStatus = document.getElementById('cardStatus');
-    if (cardStatus) {
-        cardStatus.textContent = cardData.isActive ? 'Active' : 'Inactive';
-        cardStatus.className = `status ${cardData.isActive ? 'active' : 'inactive'}`;
+    // Update expiration date
+    const expiresEl = document.querySelector('.expires');
+    if (expiresEl && cardData.expiresAt) {
+        const expiryDate = new Date(cardData.expiresAt);
+        const now = new Date();
+        const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+        
+        expiresEl.textContent = `Expires in ${daysLeft} days (${expiryDate.toLocaleDateString()})`;
     }
 }
 
 /**
- * Load access logs from the API
+ * Load access logs
  */
-async function loadAccessLogs() {
-    const logsBody = document.getElementById('accessLogsBody');
-    if (!logsBody) return;
+async function loadAccessLogs(tableElement) {
+    if (!tableElement) return;
     
-    // Show loading state
-    logsBody.innerHTML = '<tr><td colspan="4" class="loading">Loading logs...</td></tr>';
+    // Show loading
+    tableElement.innerHTML = '<tr><td colspan="4" class="loading">Loading access logs...</td></tr>';
     
-    // Fetch access logs from API
-    const logs = await apiRequest('/emergency-card/logs');
+    // Fetch access logs
+    const logs = await apiRequest('/emergency-card/access-logs');
     
-    if (logs && Array.isArray(logs)) {
-        if (logs.length === 0) {
-            logsBody.innerHTML = '<tr><td colspan="4" class="no-records">No access records found</td></tr>';
-        } else {
-            // Clear and populate logs
-            logsBody.innerHTML = '';
-            logs.forEach(log => {
-                const date = new Date(log.accessedAt);
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${date.toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'short', 
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    })}</td>
-                    <td>${log.accessedBy}</td>
-                    <td>${log.accessIp}</td>
-                    <td>${log.notes}</td>
-                `;
-                logsBody.appendChild(row);
-            });
-        }
-    } else {
-        logsBody.innerHTML = '<tr><td colspan="4" class="error">Failed to load access logs</td></tr>';
+    if (!logs || logs.length === 0) {
+        tableElement.innerHTML = '<tr><td colspan="4" class="no-records">No access logs found</td></tr>';
+        return;
     }
+    
+    // Clear table
+    tableElement.innerHTML = '';
+    
+    // Add logs to table
+    logs.forEach(log => {
+        const row = document.createElement('tr');
+        
+        const accessDate = new Date(log.accessedAt);
+        const formattedDate = accessDate.toLocaleDateString();
+        const formattedTime = accessDate.toLocaleTimeString();
+        
+        row.innerHTML = `
+            <td>${formattedDate}</td>
+            <td>${formattedTime}</td>
+            <td>${log.accessedBy || 'Unknown'}</td>
+            <td>${log.accessedFrom || 'Unknown location'}</td>
+        `;
+        
+        tableElement.appendChild(row);
+    });
 }
 
 /**
- * Regenerate emergency card
+ * Fetch patient appointments
  */
-async function regenerateEmergencyCard() {
-    if (confirm('Are you sure you want to regenerate your emergency card? This will invalidate the current card and create a new one.')) {
-        // Show loading spinner
-        const qrCodeContainer = document.getElementById('qrCode');
-        if (qrCodeContainer) {
-            qrCodeContainer.innerHTML = '<div class="loading-spinner"></div>';
-        }
-        
-        showNotification('Regenerating your emergency card...', 'info');
-        
-        const response = await apiRequest('/emergency-card/regenerate', 'POST');
-        
-        if (response) {
-            showNotification('Your emergency card has been regenerated', 'success');
-            // Reload the emergency card data
-            loadEmergencyCard();
+async function fetchAppointments() {
+    const appointments = await apiRequest('/appointments');
+    
+    if (appointments && appointments.length > 0) {
+        // Update dashboard upcoming appointments
+        const appointmentList = document.querySelector('.appointment-list');
+        if (appointmentList) {
+            appointmentList.innerHTML = '';
+            
+            // Sort appointments by date
+            appointments.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // Show only future appointments, limited to 2 for the dashboard
+            const upcomingAppointments = appointments
+                .filter(apt => new Date(apt.date) >= new Date())
+                .slice(0, 2);
+            
+            if (upcomingAppointments.length === 0) {
+                appointmentList.innerHTML = '<div class="no-records">No upcoming appointments</div>';
+            } else {
+                upcomingAppointments.forEach(appointment => {
+                    const date = new Date(appointment.date);
+                    const appointmentItem = document.createElement('div');
+                    appointmentItem.className = 'appointment-item';
+                    
+                    appointmentItem.innerHTML = `
+                        <div class="appointment-date">
+                            <div class="date-display">
+                                <span class="month">${date.toLocaleString('default', { month: 'short' })}</span>
+                                <span class="day">${date.getDate()}</span>
+                            </div>
+                            <span class="time">${appointment.time}</span>
+                        </div>
+                        <div class="appointment-details">
+                            <h4>${appointment.doctorName}</h4>
+                            <p>${appointment.specialization} - ${appointment.type}</p>
+                            <p class="location"><i class="fas fa-map-marker-alt"></i> ${appointment.hospitalName}</p>
+                        </div>
+                        <div class="appointment-actions">
+                            <button class="btn btn-sm btn-outline" onclick="handleAppointment('reschedule', '${appointment._id}')">Reschedule</button>
+                            <button class="btn btn-sm btn-outline btn-danger" onclick="handleAppointment('cancel', '${appointment._id}')">Cancel</button>
+                        </div>
+                    `;
+                    
+                    appointmentList.appendChild(appointmentItem);
+                });
+            }
+            
+            // Update stat card
+            const appointmentCount = document.querySelector('.stat-card:nth-child(1) .stat-value');
+            if (appointmentCount) {
+                const futureAppointments = appointments.filter(apt => new Date(apt.date) >= new Date());
+                appointmentCount.textContent = futureAppointments.length;
+                
+                // Update next appointment detail
+                const appointmentDetail = document.querySelector('.stat-card:nth-child(1) .stat-detail');
+                if (appointmentDetail && futureAppointments.length > 0) {
+                    const nextAppointment = futureAppointments[0];
+                    const date = new Date(nextAppointment.date);
+                    appointmentDetail.textContent = `Next: Dr. ${nextAppointment.doctorName.split(' ').pop()} on ${date.toLocaleString('default', { month: 'short' })} ${date.getDate()}`;
+                } else if (appointmentDetail) {
+                    appointmentDetail.textContent = 'No upcoming appointments';
+                }
+            }
         }
     }
+    
+    return appointments;
 }
 
 /**
- * Update card settings
+ * Handle appointment actions
  */
-async function updateCardSettings(settings) {
-    showNotification('Updating card settings...', 'info');
-    
-    const response = await apiRequest('/emergency-card', 'PUT', settings);
-    
-    if (response) {
-        showNotification('Card settings updated successfully', 'success');
+async function handleAppointment(action, id) {
+    if (action === 'reschedule') {
+        // Get appointment details
+        const appointment = await apiRequest(`/appointments/${id}`);
         
-        // Update UI status if card is deactivated/activated
-        if (settings.isActive !== undefined) {
-            const cardStatus = document.getElementById('cardStatus');
-            if (cardStatus) {
-                cardStatus.textContent = settings.isActive ? 'Active' : 'Inactive';
-                cardStatus.className = `status ${settings.isActive ? 'active' : 'inactive'}`;
+        if (appointment) {
+            // Pre-fill the appointment form
+            const doctorSelect = document.getElementById('doctorSelect');
+            const dateInput = document.getElementById('appointmentDate');
+            const timeSelect = document.getElementById('appointmentTime');
+            const reasonTextarea = document.getElementById('appointmentReason');
+            
+            if (doctorSelect) doctorSelect.value = appointment.doctorId;
+            if (dateInput) dateInput.value = new Date(appointment.date).toISOString().split('T')[0];
+            if (timeSelect) timeSelect.value = appointment.time;
+            if (reasonTextarea) reasonTextarea.value = appointment.reason || '';
+            
+            // Set form attribute for reschedule
+            const appointmentForm = document.getElementById('appointmentForm');
+            if (appointmentForm) {
+                appointmentForm.setAttribute('data-appointment-id', id);
+                appointmentForm.setAttribute('data-action', 'reschedule');
+            }
+            
+            // Show modal
+            openModal('appointmentModal');
+            
+            // Update modal title and button
+            const modalTitle = document.querySelector('#appointmentModal .modal-header h3');
+            const saveButton = document.getElementById('saveAppointmentBtn');
+            
+            if (modalTitle) modalTitle.textContent = 'Reschedule Appointment';
+            if (saveButton) saveButton.textContent = 'Update Appointment';
+            
+            showNotification('Please select a new date and time for your appointment', 'info');
+        }
+    } else if (action === 'cancel') {
+        if (confirm('Are you sure you want to cancel this appointment?')) {
+            const result = await apiRequest(`/appointments/${id}/cancel`, 'PUT');
+            
+            if (result) {
+                showNotification('Your appointment has been cancelled', 'success');
+                // Refresh appointments
+                fetchAppointments();
             }
         }
     }
 }
 
 /**
- * Download emergency card as a PDF
+ * Save appointment (create or reschedule)
  */
-async function downloadEmergencyCard() {
-    showNotification('Preparing your emergency card for download...', 'info');
+async function saveAppointment(form) {
+    // Get form data
+    const doctorId = document.getElementById('doctorSelect').value;
+    const date = document.getElementById('appointmentDate').value;
+    const time = document.getElementById('appointmentTime').value;
+    const reason = document.getElementById('appointmentReason').value;
     
-    // In a real implementation, we would call an API endpoint that returns a PDF
+    // Validate required fields
+    if (!doctorId || !date || !time) {
+        showNotification('Please fill in all required fields', 'error');
+        return false;
+    }
+    
+    // Get form action and appointment ID
+    const action = form.getAttribute('data-action') || 'create';
+    const appointmentId = form.getAttribute('data-appointment-id');
+    
     try {
-        // Simulate an API call that returns a PDF file
-        const response = await fetch(`${API_BASE_URL}/emergency-card/download`, {
-            headers: {
-                'Authorization': `Bearer ${authToken}`
+        let result;
+        
+        if (action === 'reschedule' && appointmentId) {
+            // Update existing appointment
+            result = await apiRequest(`/appointments/${appointmentId}`, 'PUT', {
+                date,
+                time,
+                reason
+            });
+            
+            if (result) {
+                showNotification('Appointment rescheduled successfully!', 'success');
+            }
+        } else {
+            // Create new appointment
+            result = await apiRequest('/appointments', 'POST', {
+                doctorId,
+                date,
+                time,
+                reason
+            });
+            
+            if (result) {
+                showNotification('Appointment scheduled successfully!', 'success');
+            }
+        }
+        
+        // Close modal and refresh data
+        closeModal('appointmentModal');
+        form.reset();
+        fetchAppointments();
+        
+        return true;
+    } catch (error) {
+        console.error('Appointment save error:', error);
+        return false;
+    }
+}
+
+/**
+ * Initialize appointment form event listeners
+ */
+function initAppointmentForm() {
+    const saveAppointmentBtn = document.getElementById('saveAppointmentBtn');
+    const appointmentForm = document.getElementById('appointmentForm');
+    
+    if (saveAppointmentBtn && appointmentForm) {
+        saveAppointmentBtn.addEventListener('click', async function() {
+            // Show loading state
+            this.disabled = true;
+            this.textContent = 'Saving...';
+            
+            const success = await saveAppointment(appointmentForm);
+            
+            if (!success) {
+                // Reset button if unsuccessful
+                this.disabled = false;
+                this.textContent = 'Schedule Appointment';
             }
         });
-        
-        if (response.ok) {
-            // Convert response to blob
-            const blob = await response.blob();
-            
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = 'emergency_card.pdf';
-            
-            // Add to DOM and trigger download
-            document.body.appendChild(a);
-            a.click();
-            
-            // Clean up
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            
-            showNotification('Your emergency card has been downloaded', 'success');
-        } else {
-            throw new Error('Failed to download emergency card');
-        }
-    } catch (error) {
-        console.error('Download error:', error);
-        showNotification('Could not download emergency card. Please try again later.', 'error');
     }
 }
 
 /**
- * Fetch user profile data
+ * Update medications list on dashboard
  */
-async function fetchUserData() {
-    const userData = await apiRequest('/auth/profile');
-    if (userData) {
-        // Update user info in sidebar
-        document.querySelector('.user-name').textContent = userData.name || 'User';
-        document.querySelector('.user-id').textContent = `Health ID: ${userData.healthId || 'N/A'}`;
+function updateMedicationsList(prescriptions) {
+    const medicationList = document.querySelector('.medication-list');
+    if (!medicationList) return;
+    
+    // Clear existing items
+    medicationList.innerHTML = '';
+    
+    // Get active medications (not expired)
+    const now = new Date();
+    const activeMedications = prescriptions
+        .filter(prescription => {
+            const endDate = prescription.endDate ? new Date(prescription.endDate) : null;
+            return !endDate || endDate > now;
+        })
+        .flatMap(prescription => prescription.medications || []);
+    
+    // Update medication count in stats
+    const medicationCount = document.querySelector('.stat-card:nth-child(2) .stat-value');
+    if (medicationCount) {
+        medicationCount.textContent = activeMedications.length;
+    }
+    
+    // Update last updated date
+    const medicationDetail = document.querySelector('.stat-card:nth-child(2) .stat-detail');
+    if (medicationDetail && prescriptions.length > 0) {
+        // Get the most recent prescription
+        const latestPrescription = prescriptions.sort((a, b) => 
+            new Date(b.createdAt) - new Date(a.createdAt)
+        )[0];
         
-        // Update welcome message
-        const welcomeMessage = document.querySelector('.welcome-message h3');
-        if (welcomeMessage) {
-            welcomeMessage.textContent = `Welcome back, ${userData.name?.split(' ')[0] || 'User'}!`;
+        const createdDate = new Date(latestPrescription.createdAt);
+        const timeDiff = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
+        
+        if (timeDiff === 0) {
+            medicationDetail.textContent = 'Last updated: Today';
+        } else if (timeDiff === 1) {
+            medicationDetail.textContent = 'Last updated: Yesterday';
+        } else if (timeDiff < 7) {
+            medicationDetail.textContent = `Last updated: ${timeDiff} days ago`;
+        } else if (timeDiff < 30) {
+            medicationDetail.textContent = `Last updated: ${Math.floor(timeDiff / 7)} week(s) ago`;
+        } else {
+            medicationDetail.textContent = `Last updated: ${Math.floor(timeDiff / 30)} month(s) ago`;
         }
+    }
+    
+    // Display medications (limit to 2 for dashboard)
+    if (activeMedications.length === 0) {
+        medicationList.innerHTML = '<div class="no-records">No active medications</div>';
+    } else {
+        activeMedications.slice(0, 2).forEach(medication => {
+            const item = document.createElement('div');
+            item.className = 'medication-item';
+            
+            // Determine icon based on medication form
+            let icon = 'pills';
+            if (medication.form === 'capsule') icon = 'capsules';
+            else if (medication.form === 'liquid') icon = 'flask';
+            else if (medication.form === 'injection') icon = 'syringe';
+            
+            item.innerHTML = `
+                <div class="medication-icon">
+                    <i class="fas fa-${icon}"></i>
+                </div>
+                <div class="medication-details">
+                    <h4>${medication.name} ${medication.dosage || ''}</h4>
+                    <p>${medication.instructions || 'Take as directed'}</p>
+                    <div class="medication-meta">
+                        <span><i class="far fa-calendar-alt"></i> Started: ${new Date(medication.startDate || prescription.createdAt).toLocaleDateString()}</span>
+                        <span><i class="fas fa-user-md"></i> Dr. ${medication.prescribedBy || 'Unknown'}</span>
+                    </div>
+                </div>
+            `;
+            
+            medicationList.appendChild(item);
+        });
     }
 } 
