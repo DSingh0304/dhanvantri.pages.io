@@ -1,0 +1,18 @@
+const express = require('express');
+const router = express.Router();
+const { protect, doctor } = require('../middleware/authMiddleware');
+const {
+  getPrescriptionById,
+  updatePrescription,
+  deletePrescription,
+} = require('../controllers/prescriptionController');
+
+// All routes are protected
+router.use(protect);
+
+router.route('/:id')
+  .get(getPrescriptionById)
+  .put(doctor, updatePrescription)
+  .delete(doctor, deletePrescription);
+
+module.exports = router;
