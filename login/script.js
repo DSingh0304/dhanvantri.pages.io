@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     // API Configuration
-    const API_BASE_URL = 'https://api.ysinghc.me/v1';
+    const API_BASE_URL = 'https://api.ysinghc.me/api/v1';
     
     // User Type Selector
     const userTypeButtons = document.querySelectorAll('.user-type-btn');
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 hospitalLink.classList.remove('hidden');
             }
             
-            // Update form action or other attributes if needed
+            // Update form attribute
             loginForm.setAttribute('data-user-type', userType);
         });
     });
@@ -93,8 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     body: JSON.stringify({
                         email,
-                        password,
-                        userType
+                        password
                     })
                 });
                 
@@ -109,12 +108,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Store user info
                 const storage = rememberMe ? localStorage : sessionStorage;
+                
+                // Check if data.user exists before accessing its properties
+                if (!data.user) {
+                    console.warn('API response missing user data');
+                    // Use the form-selected userType as fallback
+                    const userInfo = {
+                        email: email,
+                        userType: userType,
+                        isLoggedIn: true
+                    };
+                    storage.setItem('userInfo', JSON.stringify(userInfo));
+                    
+                    // Show success message
+                    showMessage('Login successful! Redirecting...', 'success');
+                    
+                    // Redirect using the form-selected userType
+                    setTimeout(() => {
+                        redirectToDashboard(userType);
+                    }, 1000);
+                    return;
+                }
+                
                 const userInfo = {
                     email: email,
-                    userType: userType,
-                    userId: data.user._id,
-                    name: data.user.name,
-                    healthId: data.user.healthId,
+                    userType: data.user.userType || userType, // Fallback to form userType if API doesn't provide it
+                    userId: data.user._id || null,
+                    name: data.user.name || email.split('@')[0], // Use first part of email as name if not provided
                     isLoggedIn: true
                 };
                 
@@ -125,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Redirect to appropriate dashboard
                 setTimeout(() => {
-                    redirectToDashboard(userType);
+                    redirectToDashboard(userInfo.userType);
                 }, 1000);
             } catch (error) {
                 console.error('Login error:', error);
@@ -143,8 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (govtIdButton) {
         govtIdButton.addEventListener('click', function() {
-            // In a real application, this would trigger a modal or redirect to a govt ID verification page
-            showMessage('Government ID login feature coming soon', 'info');
+            showMessage('Government ID login feature is not yet implemented', 'info');
         });
     }
     
@@ -154,7 +173,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (forgotPasswordLink) {
         forgotPasswordLink.addEventListener('click', function(e) {
             e.preventDefault();
-            // In a real application, this would show a password reset form or redirect to a reset page
             const email = document.getElementById('email').value;
             
             if (!email) {
@@ -162,29 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Show loading/pending message
-            showMessage('Processing your password reset request...', 'info');
-            
-            // Make API call to request password reset
-            fetch(`${API_BASE_URL}/auth/forgot-password`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showMessage('Password reset email sent. Please check your inbox.', 'success');
-                } else {
-                    showMessage(data.message || 'Failed to send reset email. Please try again.', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Password reset error:', error);
-                showMessage('Failed to process reset request. Please try again later.', 'error');
-            });
+            showMessage('Password reset functionality will be implemented soon.', 'info');
         });
     }
     
@@ -292,33 +288,38 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check if user is already logged in
     function checkLoginStatus() {
-        const authToken = localStorage.getItem('authToken');
-        const userInfo = JSON.parse(localStorage.getItem('userInfo') || sessionStorage.getItem('userInfo') || '{}');
-        
-        if (authToken && userInfo.isLoggedIn) {
-            // Verify token validity with the server
-            fetch(`${API_BASE_URL}/auth/verify-token`, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`
+        try {
+            const authToken = localStorage.getItem('authToken');
+            
+            // Get stored user info from localStorage or sessionStorage
+            let userInfo = null;
+            const localStorageInfo = localStorage.getItem('userInfo');
+            const sessionStorageInfo = sessionStorage.getItem('userInfo');
+            
+            // Try to parse userInfo from storage
+            try {
+                if (localStorageInfo) {
+                    userInfo = JSON.parse(localStorageInfo);
+                } else if (sessionStorageInfo) {
+                    userInfo = JSON.parse(sessionStorageInfo);
                 }
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Token is valid, redirect to dashboard
-                    redirectToDashboard(userInfo.userType);
-                } else {
-                    // Token is invalid, clear storage
-                    localStorage.removeItem('authToken');
-                    localStorage.removeItem('userInfo');
-                    sessionStorage.removeItem('userInfo');
-                }
-            })
-            .catch(error => {
-                console.error('Token verification error:', error);
-                // On network error, we'll still try to use the cached session
-                // This allows offline login if previously logged in
-                redirectToDashboard(userInfo.userType);
-            });
+            } catch (parseError) {
+                console.error('Error parsing stored user info:', parseError);
+                // Clear potentially corrupted data
+                localStorage.removeItem('userInfo');
+                sessionStorage.removeItem('userInfo');
+                return; // Exit function if parsing fails
+            }
+            
+            // Check if we have a token and userInfo
+            if (authToken && userInfo && userInfo.isLoggedIn) {
+                // Provide a fallback if userType is missing
+                const userType = userInfo.userType || 'patient';
+                // Redirect to dashboard
+                redirectToDashboard(userType);
+            }
+        } catch (error) {
+            console.error('Error checking login status:', error);
         }
     }
     

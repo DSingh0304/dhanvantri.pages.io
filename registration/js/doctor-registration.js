@@ -10,14 +10,12 @@ const togglePassword = document.querySelector('.toggle-password');
 const passwordInput = document.getElementById('password');
 const strengthBar = document.querySelector('.strength-bar');
 const registrationForm = document.getElementById('doctorRegistrationForm');
-const specializationSelect = document.getElementById('specialization');
-const otherSpecialization = document.getElementById('otherSpecialization');
-const otherSpecializationLabel = document.getElementById('otherSpecializationLabel');
 const medicalCouncilSelect = document.getElementById('medicalCouncil');
-const otherCouncil = document.getElementById('otherCouncil');
-const otherCouncilLabel = document.getElementById('otherCouncilLabel');
-const hospitalAffiliation = document.getElementById('hospitalAffiliation');
-const hospitalIdGroup = document.getElementById('hospitalIdGroup');
+const otherCouncilField = document.getElementById('otherCouncilField');
+const specializationSelect = document.getElementById('specialization');
+const otherSpecializationField = document.getElementById('otherSpecializationField');
+const hospitalAffiliationCheckbox = document.getElementById('hospitalAffiliation');
+const hospitalDetailsField = document.getElementById('hospitalDetailsField');
 const submitButton = document.querySelector('.submit-btn');
 
 // Initialize form behavior
@@ -26,7 +24,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initPasswordToggle();
     initPasswordStrength();
     initConditionalFields();
-    initFileUploads();
     
     // Handle form submission
     registrationForm.addEventListener('submit', handleFormSubmit);
@@ -127,178 +124,246 @@ function calculatePasswordStrength(password) {
     return Math.min(100, strength);
 }
 
-// Initialize conditional fields based on select values
+// Initialize conditional form fields
 function initConditionalFields() {
-    // For specialization
-    specializationSelect.addEventListener('change', function() {
-        if (this.value === 'other') {
-            otherSpecialization.classList.remove('hidden');
-            otherSpecializationLabel.classList.remove('hidden');
-            otherSpecialization.setAttribute('required', true);
-        } else {
-            otherSpecialization.classList.add('hidden');
-            otherSpecializationLabel.classList.add('hidden');
-            otherSpecialization.removeAttribute('required');
-        }
-    });
-    
-    // For medical council
+    // Medical Council conditional field
     medicalCouncilSelect.addEventListener('change', function() {
         if (this.value === 'other') {
-            otherCouncil.classList.remove('hidden');
-            otherCouncilLabel.classList.remove('hidden');
-            otherCouncil.setAttribute('required', true);
+            otherCouncilField.classList.remove('hidden');
         } else {
-            otherCouncil.classList.add('hidden');
-            otherCouncilLabel.classList.add('hidden');
-            otherCouncil.removeAttribute('required');
+            otherCouncilField.classList.add('hidden');
         }
     });
     
-    // For hospital affiliation
-    hospitalAffiliation.addEventListener('change', function() {
-        if (this.checked) {
-            hospitalIdGroup.style.display = 'block';
-            document.getElementById('hospitalId').setAttribute('required', true);
+    // Specialization conditional field
+    specializationSelect.addEventListener('change', function() {
+        if (this.value === 'other') {
+            otherSpecializationField.classList.remove('hidden');
         } else {
-            hospitalIdGroup.style.display = 'none';
-            document.getElementById('hospitalId').removeAttribute('required');
+            otherSpecializationField.classList.add('hidden');
         }
     });
     
-    // Initialize hospital ID field visibility
-    hospitalIdGroup.style.display = hospitalAffiliation.checked ? 'block' : 'none';
-}
-
-// Initialize file upload styling
-function initFileUploads() {
-    const fileInputs = document.querySelectorAll('input[type="file"]');
-    
-    fileInputs.forEach(input => {
-        const placeholder = input.nextElementSibling;
-        
-        input.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                const fileName = this.files[0].name;
-                placeholder.innerHTML = `<i class="fas fa-file-alt"></i> <span>${fileName}</span>`;
-                placeholder.classList.add('has-file');
+    // Hospital affiliation conditional field
+    if (hospitalAffiliationCheckbox) {
+        hospitalAffiliationCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                hospitalDetailsField.classList.remove('hidden');
             } else {
-                placeholder.innerHTML = `<i class="fas fa-upload"></i> <span>Click to select file or drag and drop</span>`;
-                placeholder.classList.remove('has-file');
+                hospitalDetailsField.classList.add('hidden');
             }
         });
-    });
+    }
 }
 
-// Validate form step
+// Validate each step of the form
 function validateStep(stepNumber) {
-    const currentStep = document.querySelector(`.form-step[data-step="${stepNumber}"]`);
-    const inputs = currentStep.querySelectorAll('input, select, textarea');
     let isValid = true;
     
-    // Remove existing validation messages
-    document.querySelectorAll('.validation-error').forEach(el => el.remove());
-    
-    // Check each input in the current step
-    inputs.forEach(input => {
-        // Skip validation for hidden fields
-        if (input.classList.contains('hidden') || 
-            (input.id === 'hospitalId' && !hospitalAffiliation.checked)) {
-            return;
-        }
-        
-        input.classList.remove('input-error');
-        
-        // Check required fields
-        if (input.hasAttribute('required') && !input.value.trim()) {
-            showValidationError(input, 'This field is required');
-            isValid = false;
-            return;
-        }
-        
-        // Specific validations based on field type
-        switch(input.id) {
-            case 'email':
-                if (input.value && !validateEmail(input.value)) {
-                    showValidationError(input, 'Please enter a valid email address');
-                    isValid = false;
-                }
-                break;
-                
-            case 'password':
-                if (input.value && input.value.length < 8) {
-                    showValidationError(input, 'Password must be at least 8 characters');
-                    isValid = false;
-                }
-                break;
-                
-            case 'confirmPassword':
-                const password = document.getElementById('password').value;
-                if (input.value !== password) {
-                    showValidationError(input, 'Passwords do not match');
-                    isValid = false;
-                }
-                break;
-                
-            case 'phone':
-                if (input.value && !validatePhone(input.value)) {
-                    showValidationError(input, 'Please enter a valid phone number');
-                    isValid = false;
-                }
-                break;
-                
-            case 'pincode':
-                if (input.value && !validatePincode(input.value)) {
-                    showValidationError(input, 'Please enter a valid 6-digit PIN code');
-                    isValid = false;
-                }
-                break;
-                
-            case 'medicalRegistrationNumber':
-                if (input.value && input.value.length < 5) {
-                    showValidationError(input, 'Please enter a valid registration number');
-                    isValid = false;
-                }
-                break;
-                
-            case 'yearsOfExperience':
-                if (input.value && (parseInt(input.value) < 0 || isNaN(parseInt(input.value)))) {
-                    showValidationError(input, 'Please enter a valid number');
-                    isValid = false;
-                }
-                break;
-        }
-    });
-    
-    // For stepNumber 4, validate file uploads
-    if (stepNumber === 4) {
-        const registrationCert = document.getElementById('registrationCertificate');
-        const identityProof = document.getElementById('identityProof');
-        
-        if (registrationCert.files.length === 0) {
-            showValidationError(registrationCert, 'Please upload your registration certificate');
-            isValid = false;
-        } else if (registrationCert.files[0].size > 5 * 1024 * 1024) { // 5MB limit
-            showValidationError(registrationCert, 'File size exceeds 5MB limit');
-            isValid = false;
-        }
-        
-        if (identityProof.files.length === 0) {
-            showValidationError(identityProof, 'Please upload your identity proof');
-            isValid = false;
-        } else if (identityProof.files[0].size > 5 * 1024 * 1024) { // 5MB limit
-            showValidationError(identityProof, 'File size exceeds 5MB limit');
-            isValid = false;
-        }
-        
-        // Validate consent checkboxes
-        const consentCheckboxes = document.querySelectorAll('.consent-checkboxes input[type="checkbox"]');
-        consentCheckboxes.forEach(checkbox => {
-            if (!checkbox.checked) {
-                showValidationError(checkbox, 'You must agree to this statement to continue');
+    switch (stepNumber) {
+        case 1:
+            // Account Information
+            const fullName = document.getElementById('fullName');
+            const email = document.getElementById('email');
+            const password = document.getElementById('password');
+            const confirmPassword = document.getElementById('confirmPassword');
+            
+            // Clear previous validation errors
+            document.querySelectorAll('.validation-error').forEach(el => el.remove());
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+            
+            // Validate full name
+            if (!fullName.value.trim()) {
+                showValidationError(fullName, 'Full name is required');
+                isValid = false;
+            } else if (fullName.value.trim().length < 3) {
+                showValidationError(fullName, 'Name should be at least 3 characters');
                 isValid = false;
             }
-        });
+            
+            // Validate email
+            if (!email.value.trim()) {
+                showValidationError(email, 'Email is required');
+                isValid = false;
+            } else if (!validateEmail(email.value)) {
+                showValidationError(email, 'Please enter a valid email address');
+                isValid = false;
+            }
+            
+            // Validate password
+            if (!password.value) {
+                showValidationError(password, 'Password is required');
+                isValid = false;
+            } else if (password.value.length < 8) {
+                showValidationError(password, 'Password should be at least 8 characters');
+                isValid = false;
+            } else if (calculatePasswordStrength(password.value) < 50) {
+                showValidationError(password, 'Password is too weak. Add uppercase, numbers or special characters');
+                isValid = false;
+            }
+            
+            // Validate password confirmation
+            if (!confirmPassword.value) {
+                showValidationError(confirmPassword, 'Please confirm your password');
+                isValid = false;
+            } else if (confirmPassword.value !== password.value) {
+                showValidationError(confirmPassword, 'Passwords do not match');
+                isValid = false;
+            }
+            
+            break;
+            
+        case 2:
+            // Personal Information
+            const phone = document.getElementById('phone');
+            const street = document.getElementById('street');
+            const city = document.getElementById('city');
+            const state = document.getElementById('state');
+            const pincode = document.getElementById('pincode');
+            const country = document.getElementById('country');
+            
+            // Clear previous validation errors
+            document.querySelectorAll('.validation-error').forEach(el => el.remove());
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+            
+            // Validate phone
+            if (!phone.value.trim()) {
+                showValidationError(phone, 'Phone number is required');
+                isValid = false;
+            } else if (!validatePhone(phone.value)) {
+                showValidationError(phone, 'Please enter a valid 10-digit phone number');
+                isValid = false;
+            }
+            
+            // Validate address fields
+            if (!street.value.trim()) {
+                showValidationError(street, 'Street address is required');
+                isValid = false;
+            }
+            
+            if (!city.value.trim()) {
+                showValidationError(city, 'City is required');
+                isValid = false;
+            }
+            
+            if (!state.value.trim()) {
+                showValidationError(state, 'State/Province is required');
+                isValid = false;
+            }
+            
+            if (!pincode.value.trim()) {
+                showValidationError(pincode, 'Postal/Zip code is required');
+                isValid = false;
+            } else if (!validatePincode(pincode.value)) {
+                showValidationError(pincode, 'Please enter a valid 6-digit postal code');
+                isValid = false;
+            }
+            
+            if (!country.value.trim()) {
+                showValidationError(country, 'Country is required');
+                isValid = false;
+            }
+            
+            break;
+            
+        case 3:
+            // Professional Information
+            const regNumber = document.getElementById('medicalRegistrationNumber');
+            const medicalCouncil = document.getElementById('medicalCouncil');
+            const otherCouncil = document.getElementById('otherCouncil');
+            const specialization = document.getElementById('specialization');
+            const otherSpecialization = document.getElementById('otherSpecialization');
+            const qualifications = document.getElementById('medicalQualifications');
+            const experience = document.getElementById('yearsOfExperience');
+            const fee = document.getElementById('consultationFee');
+            
+            // Clear previous validation errors
+            document.querySelectorAll('.validation-error').forEach(el => el.remove());
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+            
+            // Validate registration number
+            if (!regNumber.value.trim()) {
+                showValidationError(regNumber, 'Medical registration number is required');
+                isValid = false;
+            }
+            
+            // Validate medical council
+            if (!medicalCouncil.value) {
+                showValidationError(medicalCouncil, 'Please select your medical council');
+                isValid = false;
+            } else if (medicalCouncil.value === 'other' && !otherCouncil.value.trim()) {
+                showValidationError(otherCouncil, 'Please specify your medical council');
+                isValid = false;
+            }
+            
+            // Validate specialization
+            if (!specialization.value) {
+                showValidationError(specialization, 'Please select your specialization');
+                isValid = false;
+            } else if (specialization.value === 'other' && !otherSpecialization.value.trim()) {
+                showValidationError(otherSpecialization, 'Please specify your specialization');
+                isValid = false;
+            }
+            
+            // Validate qualifications
+            if (!qualifications.value.trim()) {
+                showValidationError(qualifications, 'Medical qualifications are required');
+                isValid = false;
+            }
+            
+            // Validate years of experience
+            if (!experience.value.trim()) {
+                showValidationError(experience, 'Years of experience is required');
+                isValid = false;
+            } else if (isNaN(parseInt(experience.value)) || parseInt(experience.value) < 0) {
+                showValidationError(experience, 'Please enter a valid number of years');
+                isValid = false;
+            }
+            
+            // Validate consultation fee
+            if (!fee.value.trim()) {
+                showValidationError(fee, 'Consultation fee is required');
+                isValid = false;
+            } else if (isNaN(parseInt(fee.value)) || parseInt(fee.value) < 0) {
+                showValidationError(fee, 'Please enter a valid fee amount');
+                isValid = false;
+            }
+            
+            break;
+            
+        case 4:
+            // Terms & Verification
+            const termsConsent = document.getElementById('termsConsent');
+            const privacyConsent = document.getElementById('privacyConsent');
+            const dataConsent = document.getElementById('dataConsent');
+            const credentialsConsent = document.getElementById('credentialsConsent');
+            
+            // Clear previous validation errors
+            document.querySelectorAll('.validation-error').forEach(el => el.remove());
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+            
+            // Validate consent checkboxes
+            if (!termsConsent.checked) {
+                showValidationError(termsConsent, 'You must agree to the Terms and Conditions');
+                isValid = false;
+            }
+            
+            if (!privacyConsent.checked) {
+                showValidationError(privacyConsent, 'You must agree to the Privacy Policy');
+                isValid = false;
+            }
+            
+            if (!dataConsent.checked) {
+                showValidationError(dataConsent, 'You must agree to the Data Processing');
+                isValid = false;
+            }
+            
+            if (!credentialsConsent.checked) {
+                showValidationError(credentialsConsent, 'You must certify your credentials');
+                isValid = false;
+            }
+            
+            break;
     }
     
     return isValid;
@@ -406,41 +471,61 @@ async function handleFormSubmit(event) {
 
 // Collect all form data
 function collectFormData() {
+    // Generate a unique health ID 
+    const generateHealthId = () => {
+        const prefix = 'DH';
+        const timestamp = new Date().getTime().toString().slice(-8);
+        const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        return `${prefix}${timestamp}${random}`;
+    };
+    
+    // Get specialization value
+    let specialization = specializationSelect.value;
+    if (specialization === 'other') {
+        specialization = document.getElementById('otherSpecialization').value;
+    }
+    
+    // Get medical council value
+    let medicalCouncil = medicalCouncilSelect.value;
+    if (medicalCouncil === 'other') {
+        medicalCouncil = document.getElementById('otherCouncil').value;
+    }
+    
+    // Get qualifications as array
+    const qualificationsText = document.getElementById('medicalQualifications').value;
+    const qualifications = qualificationsText.split(',').map(q => q.trim());
+    
+    // Format for registration request that matches the DB schema
     const formData = {
-        userType: 'doctor',
-        name: document.getElementById('fullName').value,
         email: document.getElementById('email').value,
         password: document.getElementById('password').value,
-        phone: document.getElementById('phone').value,
-        
-        // Additional doctor details
-        doctor: {
-            dateOfBirth: document.getElementById('dob').value,
-            gender: document.querySelector('input[name="gender"]:checked').value,
-            address: {
-                street: document.getElementById('street').value,
-                city: document.getElementById('city').value,
-                state: document.getElementById('state').value,
-                pincode: document.getElementById('pincode').value,
-                country: document.getElementById('country').value
-            },
-            professionalDetails: {
-                registrationNumber: document.getElementById('medicalRegistrationNumber').value,
-                medicalCouncil: medicalCouncilSelect.value === 'other' ? 
-                    document.getElementById('otherCouncil').value : 
-                    medicalCouncilSelect.value,
-                specialization: specializationSelect.value === 'other' ? 
-                    document.getElementById('otherSpecialization').value : 
-                    specializationSelect.value,
-                qualifications: document.getElementById('medicalQualifications').value,
-                yearsOfExperience: parseInt(document.getElementById('yearsOfExperience').value)
-            }
-        }
+        userType: 'doctor',
+        healthId: generateHealthId(),
+        name: document.getElementById('fullName').value,
+        specialization: specialization,
+        qualifications: qualifications,
+        experience: parseInt(document.getElementById('yearsOfExperience').value),
+        licenseNumber: document.getElementById('medicalRegistrationNumber').value,
+        contactNumber: document.getElementById('phone').value,
+        address: {
+            street: document.getElementById('street').value,
+            city: document.getElementById('city').value,
+            state: document.getElementById('state').value,
+            postalCode: document.getElementById('pincode').value,
+            country: document.getElementById('country').value
+        },
+        consultationFee: parseInt(document.getElementById('consultationFee').value)
     };
     
     // Add hospital affiliation if selected
-    if (document.getElementById('hospitalAffiliation').checked) {
-        formData.doctor.hospitalId = document.getElementById('hospitalId').value;
+    if (document.getElementById('hospitalAffiliation') && 
+        document.getElementById('hospitalAffiliation').checked) {
+        
+        formData.hospitalAffiliations = [{
+            hospitalId: document.getElementById('hospitalId').value || generateHealthId(),
+            name: document.getElementById('hospitalName').value || 'Hospital',
+            current: true
+        }];
     }
     
     return formData;
@@ -456,7 +541,7 @@ function showSuccessMessage() {
             <i class="fas fa-check-circle"></i>
         </div>
         <h3>Registration Successful!</h3>
-        <p>Your account is pending verification. We'll review your credentials and notify you once approved.</p>
+        <p>Your account has been created. You can now log in to access your doctor dashboard.</p>
     `;
     
     // Replace form with success message

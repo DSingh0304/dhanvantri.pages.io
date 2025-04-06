@@ -10,13 +10,6 @@ const togglePassword = document.querySelector('.toggle-password');
 const passwordInput = document.getElementById('password');
 const strengthBar = document.querySelector('.strength-bar');
 const registrationForm = document.getElementById('patientRegistrationForm');
-const verificationType = document.querySelectorAll('input[name="verificationType"]');
-const govtIdVerificationFields = document.getElementById('govtIdVerificationFields');
-const mobileVerificationFields = document.getElementById('mobileVerificationFields');
-const sendOtpButton = document.querySelector('.send-otp-button');
-const verifyOtpButton = document.querySelector('.verify-otp-button');
-const otpGroup = document.querySelector('.otp-group');
-const otpInputs = document.querySelectorAll('.otp-input');
 const submitButton = document.querySelector('.submit-btn');
 
 // Initialize form behavior
@@ -24,8 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initFormSteps();
     initPasswordToggle();
     initPasswordStrength();
-    initVerificationToggle();
-    initOtpInputs();
     
     // Handle form submission
     registrationForm.addEventListener('submit', handleFormSubmit);
@@ -126,296 +117,171 @@ function calculatePasswordStrength(password) {
     return Math.min(100, strength);
 }
 
-// Initialize verification method toggle
-function initVerificationToggle() {
-    verificationType.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.value === 'govtId') {
-                govtIdVerificationFields.classList.remove('hidden');
-                mobileVerificationFields.classList.add('hidden');
-            } else if (this.value === 'mobile') {
-                govtIdVerificationFields.classList.add('hidden');
-                mobileVerificationFields.classList.remove('hidden');
-                
-                // Set the mobile number field value to match the phone number entered in step 2
-                const phoneNumber = document.getElementById('phone').value;
-                document.getElementById('mobileVerifyNumber').value = phoneNumber;
-            }
-        });
-    });
-    
-    // Initialize OTP sending and verification
-    if (sendOtpButton) {
-        sendOtpButton.addEventListener('click', sendOTP);
-    }
-    
-    if (verifyOtpButton) {
-        verifyOtpButton.addEventListener('click', verifyOTP);
-    }
-}
-
-// Initialize OTP input field behavior
-function initOtpInputs() {
-    otpInputs.forEach((input, index) => {
-        // Handle input
-        input.addEventListener('input', function() {
-            if (this.value.length === 1) {
-                // Auto-focus next input
-                if (index < otpInputs.length - 1) {
-                    otpInputs[index + 1].focus();
-                }
-            }
-        });
-        
-        // Handle backspace
-        input.addEventListener('keydown', function(e) {
-            if (e.key === 'Backspace' && !this.value) {
-                // Focus previous input when backspace is pressed on empty input
-                if (index > 0) {
-                    otpInputs[index - 1].focus();
-                }
-            }
-        });
-        
-        // Handle paste
-        input.addEventListener('paste', function(e) {
-            e.preventDefault();
-            const pasteData = e.clipboardData.getData('text').trim();
-            
-            if (/^\d+$/.test(pasteData) && pasteData.length <= otpInputs.length) {
-                // Fill OTP inputs with pasted digits
-                for (let i = 0; i < pasteData.length; i++) {
-                    if (index + i < otpInputs.length) {
-                        otpInputs[index + i].value = pasteData[i];
-                    }
-                }
-                
-                // Focus the next empty input or the last input
-                const nextIndex = Math.min(index + pasteData.length, otpInputs.length - 1);
-                otpInputs[nextIndex].focus();
-            }
-        });
-    });
-}
-
-// Send OTP for mobile verification
-function sendOTP() {
-    const phoneNumber = document.getElementById('mobileVerifyNumber').value;
-    
-    if (!phoneNumber || !validatePhone(phoneNumber)) {
-        showValidationError(document.getElementById('mobileVerifyNumber'), 'Please enter a valid phone number');
-        return;
-    }
-    
-    // Show loading state
-    sendOtpButton.disabled = true;
-    sendOtpButton.textContent = 'Sending...';
-    
-    // Simulate API call to send OTP (replace with actual API call)
-    setTimeout(() => {
-        // Show OTP input fields
-        otpGroup.classList.remove('hidden');
-        
-        // Start OTP timer
-        startOtpTimer();
-        
-        // Reset button
-        sendOtpButton.disabled = false;
-        sendOtpButton.textContent = 'Resend OTP';
-        
-        // Show success message
-        const successMessage = document.createElement('div');
-        successMessage.className = 'verification-success';
-        successMessage.innerHTML = '<i class="fas fa-check-circle"></i> OTP sent successfully!';
-        
-        const container = document.getElementById('mobileVerificationFields');
-        const existingMessage = container.querySelector('.verification-success');
-        if (existingMessage) existingMessage.remove();
-        
-        container.insertBefore(successMessage, otpGroup);
-        
-        // Focus the first OTP input
-        otpInputs[0].focus();
-    }, 1500);
-}
-
-// Start OTP timer countdown
-function startOtpTimer() {
-    const timerElement = document.getElementById('otpTimer');
-    let timeLeft = 60;
-    
-    timerElement.textContent = timeLeft;
-    
-    const timerInterval = setInterval(() => {
-        timeLeft--;
-        timerElement.textContent = timeLeft;
-        
-        if (timeLeft <= 0) {
-            clearInterval(timerInterval);
-            sendOtpButton.disabled = false;
-        } else {
-            sendOtpButton.disabled = true;
-        }
-    }, 1000);
-}
-
-// Verify entered OTP
-function verifyOTP() {
-    let otpValue = '';
-    
-    // Collect OTP from inputs
-    otpInputs.forEach(input => {
-        otpValue += input.value;
-    });
-    
-    if (otpValue.length !== 6 || !/^\d+$/.test(otpValue)) {
-        showValidationError(otpInputs[0], 'Please enter a valid 6-digit OTP');
-        return;
-    }
-    
-    // Show loading state
-    verifyOtpButton.disabled = true;
-    verifyOtpButton.textContent = 'Verifying...';
-    
-    // Simulate API call to verify OTP (replace with actual API call)
-    setTimeout(() => {
-        // For this demo, consider OTP 123456 as valid
-        if (otpValue === '123456') {
-            // Show success
-            const successMessage = document.createElement('div');
-            successMessage.className = 'verification-success';
-            successMessage.innerHTML = '<i class="fas fa-check-circle"></i> Mobile verified successfully!';
-            
-            const container = document.getElementById('mobileVerificationFields');
-            container.innerHTML = '';
-            container.appendChild(successMessage);
-            
-            // Enable submit button
-            document.querySelector('.submit-btn').disabled = false;
-        } else {
-            // Show error
-            showValidationError(otpInputs[0], 'Invalid OTP. Please try again.');
-            
-            // Reset button
-            verifyOtpButton.disabled = false;
-            verifyOtpButton.textContent = 'Verify OTP';
-            
-            // Clear OTP fields
-            otpInputs.forEach(input => {
-                input.value = '';
-            });
-            otpInputs[0].focus();
-        }
-    }, 1500);
-}
-
-// Validate form step
+// Validate each step of the form
 function validateStep(stepNumber) {
-    const currentStep = document.querySelector(`.form-step[data-step="${stepNumber}"]`);
-    const inputs = currentStep.querySelectorAll('input, select, textarea');
     let isValid = true;
     
-    // Remove existing validation messages
-    document.querySelectorAll('.validation-error').forEach(el => el.remove());
-    
-    // Check each input in the current step
-    inputs.forEach(input => {
-        // Skip validation for hidden fields
-        if (input.classList.contains('hidden')) {
-            return;
-        }
-        
-        input.classList.remove('input-error');
-        
-        // Check required fields
-        if (input.hasAttribute('required') && !input.value.trim()) {
-            showValidationError(input, 'This field is required');
-            isValid = false;
-            return;
-        }
-        
-        // Specific validations based on field type
-        switch(input.id) {
-            case 'email':
-                if (input.value && !validateEmail(input.value)) {
-                    showValidationError(input, 'Please enter a valid email address');
-                    isValid = false;
-                }
-                break;
-                
-            case 'password':
-                if (input.value && input.value.length < 8) {
-                    showValidationError(input, 'Password must be at least 8 characters');
-                    isValid = false;
-                }
-                break;
-                
-            case 'confirmPassword':
-                const password = document.getElementById('password').value;
-                if (input.value !== password) {
-                    showValidationError(input, 'Passwords do not match');
-                    isValid = false;
-                }
-                break;
-                
-            case 'phone':
-            case 'emergencyPhone':
-                if (input.value && !validatePhone(input.value)) {
-                    showValidationError(input, 'Please enter a valid phone number');
-                    isValid = false;
-                }
-                break;
-                
-            case 'pincode':
-                if (input.value && !validatePincode(input.value)) {
-                    showValidationError(input, 'Please enter a valid 6-digit PIN code');
-                    isValid = false;
-                }
-                break;
-                
-            case 'height':
-                if (input.value && (parseInt(input.value) < 50 || parseInt(input.value) > 250 || isNaN(parseInt(input.value)))) {
-                    showValidationError(input, 'Please enter a valid height (50-250 cm)');
-                    isValid = false;
-                }
-                break;
-                
-            case 'weight':
-                if (input.value && (parseInt(input.value) < 1 || parseInt(input.value) > 500 || isNaN(parseInt(input.value)))) {
-                    showValidationError(input, 'Please enter a valid weight (1-500 kg)');
-                    isValid = false;
-                }
-                break;
-                
-            case 'idNumber':
-                if (stepNumber === 4 && document.getElementById('govtIdVerification').checked && !input.value) {
-                    showValidationError(input, 'Please enter your ID number');
-                    isValid = false;
-                }
-                break;
-        }
-    });
-    
-    // For stepNumber 4, validate consent checkboxes
-    if (stepNumber === 4) {
-        const consentCheckboxes = document.querySelectorAll('.consent-checkboxes input[type="checkbox"]');
-        consentCheckboxes.forEach(checkbox => {
-            if (!checkbox.checked) {
-                showValidationError(checkbox, 'You must agree to this statement to continue');
+    switch (stepNumber) {
+        case 1:
+            // Account Information
+            const fullName = document.getElementById('fullName');
+            const email = document.getElementById('email');
+            const password = document.getElementById('password');
+            const confirmPassword = document.getElementById('confirmPassword');
+            
+            // Clear previous validation errors
+            document.querySelectorAll('.validation-error').forEach(el => el.remove());
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+            
+            // Validate full name
+            if (!fullName.value.trim()) {
+                showValidationError(fullName, 'Full name is required');
+                isValid = false;
+            } else if (fullName.value.trim().length < 3) {
+                showValidationError(fullName, 'Name should be at least 3 characters');
                 isValid = false;
             }
-        });
-        
-        // Validate verification method
-        const selectedVerification = document.querySelector('input[name="verificationType"]:checked');
-        if (selectedVerification.value === 'mobile') {
-            // Check if mobile verification was completed
-            const verificationSuccess = document.getElementById('mobileVerificationFields').querySelector('.verification-success');
-            if (!verificationSuccess) {
-                showValidationError(document.getElementById('mobileVerificationFields'), 'Please complete mobile verification');
+            
+            // Validate email
+            if (!email.value.trim()) {
+                showValidationError(email, 'Email is required');
+                isValid = false;
+            } else if (!validateEmail(email.value)) {
+                showValidationError(email, 'Please enter a valid email address');
                 isValid = false;
             }
-        }
+            
+            // Validate password
+            if (!password.value) {
+                showValidationError(password, 'Password is required');
+                isValid = false;
+            } else if (password.value.length < 8) {
+                showValidationError(password, 'Password should be at least 8 characters');
+                isValid = false;
+            } else if (calculatePasswordStrength(password.value) < 50) {
+                showValidationError(password, 'Password is too weak. Add uppercase, numbers or special characters');
+                isValid = false;
+            }
+            
+            // Validate password confirmation
+            if (!confirmPassword.value) {
+                showValidationError(confirmPassword, 'Please confirm your password');
+                isValid = false;
+            } else if (confirmPassword.value !== password.value) {
+                showValidationError(confirmPassword, 'Passwords do not match');
+                isValid = false;
+            }
+            
+            break;
+            
+        case 2:
+            // Personal Information
+            const phone = document.getElementById('phone');
+            const dob = document.getElementById('dob');
+            const gender = document.querySelector('input[name="gender"]:checked');
+            
+            // Clear previous validation errors
+            document.querySelectorAll('.validation-error').forEach(el => el.remove());
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+            
+            // Validate phone
+            if (!phone.value.trim()) {
+                showValidationError(phone, 'Phone number is required');
+                isValid = false;
+            } else if (!validatePhone(phone.value)) {
+                showValidationError(phone, 'Please enter a valid 10-digit phone number');
+                isValid = false;
+            }
+            
+            // Validate date of birth
+            if (!dob.value) {
+                showValidationError(dob, 'Date of birth is required');
+                isValid = false;
+            }
+            
+            // Validate gender
+            if (!gender) {
+                const genderGroup = document.querySelector('.radio-group.gender-group');
+                showValidationError(genderGroup.querySelector('input'), 'Please select your gender');
+                isValid = false;
+            }
+            
+            break;
+            
+        case 3:
+            // Address and Medical History
+            const street = document.getElementById('street');
+            const city = document.getElementById('city');
+            const state = document.getElementById('state');
+            const pincode = document.getElementById('pincode');
+            const country = document.getElementById('country');
+            
+            // Clear previous validation errors
+            document.querySelectorAll('.validation-error').forEach(el => el.remove());
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+            
+            // Validate street address
+            if (!street.value.trim()) {
+                showValidationError(street, 'Street address is required');
+                isValid = false;
+            }
+            
+            // Validate city
+            if (!city.value.trim()) {
+                showValidationError(city, 'City is required');
+                isValid = false;
+            }
+            
+            // Validate state
+            if (!state.value.trim()) {
+                showValidationError(state, 'State/Province is required');
+                isValid = false;
+            }
+            
+            // Validate pincode
+            if (!pincode.value.trim()) {
+                showValidationError(pincode, 'Postal/Zip code is required');
+                isValid = false;
+            } else if (!validatePincode(pincode.value)) {
+                showValidationError(pincode, 'Please enter a valid 6-digit postal code');
+                isValid = false;
+            }
+            
+            // Validate country
+            if (!country.value.trim()) {
+                showValidationError(country, 'Country is required');
+                isValid = false;
+            }
+            
+            break;
+            
+        case 4:
+            // Terms and Consent
+            const termsConsent = document.getElementById('termsConsent');
+            const privacyConsent = document.getElementById('privacyConsent');
+            const dataConsent = document.getElementById('dataConsent');
+            
+            // Clear previous validation errors
+            document.querySelectorAll('.validation-error').forEach(el => el.remove());
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+            
+            // Validate consent checkboxes
+            if (!termsConsent.checked) {
+                showValidationError(termsConsent, 'You must agree to the Terms and Conditions');
+                isValid = false;
+            }
+            
+            if (!privacyConsent.checked) {
+                showValidationError(privacyConsent, 'You must agree to the Privacy Policy');
+                isValid = false;
+            }
+            
+            if (!dataConsent.checked) {
+                showValidationError(dataConsent, 'You must agree to the Data Processing');
+                isValid = false;
+            }
+            
+            break;
     }
     
     return isValid;
@@ -433,18 +299,7 @@ function showValidationError(input, message) {
     if (input.type === 'checkbox' || input.type === 'radio') {
         const parent = input.closest('.checkbox-group, .radio-group');
         parent.appendChild(errorElement);
-    } 
-    // For mobile verification fields
-    else if (input.id === 'mobileVerificationFields') {
-        input.appendChild(errorElement);
-    }
-    // For OTP inputs
-    else if (input.classList.contains('otp-input')) {
-        const parent = input.closest('.otp-group');
-        parent.appendChild(errorElement);
-    }
-    // For regular inputs
-    else {
+    } else {
         input.parentNode.appendChild(errorElement);
     }
     
@@ -527,49 +382,61 @@ async function handleFormSubmit(event) {
 
 // Collect all form data
 function collectFormData() {
-    const formData = {
-        userType: 'patient',
-        name: document.getElementById('fullName').value,
-        email: document.getElementById('email').value,
-        password: document.getElementById('password').value,
-        phone: document.getElementById('phone').value,
-        
-        // Additional patient details
-        patient: {
-            dateOfBirth: document.getElementById('dob').value,
-            gender: document.querySelector('input[name="gender"]:checked').value,
-            bloodType: document.getElementById('bloodType').value,
-            address: {
-                street: document.getElementById('street').value,
-                city: document.getElementById('city').value,
-                state: document.getElementById('state').value,
-                pincode: document.getElementById('pincode').value,
-                country: document.getElementById('country').value
-            },
-            medicalHistory: {
-                height: document.getElementById('height').value ? parseInt(document.getElementById('height').value) : null,
-                weight: document.getElementById('weight').value ? parseInt(document.getElementById('weight').value) : null,
-                allergies: document.getElementById('allergies').value,
-                preExistingConditions: document.getElementById('preExistingConditions').value,
-                currentMedications: document.getElementById('currentMedications').value
-            },
-            emergencyContact: {
-                name: document.getElementById('emergencyName').value,
-                relationship: document.getElementById('emergencyRelation').value,
-                phone: document.getElementById('emergencyPhone').value
-            }
-        }
+    // Generate a unique health ID 
+    const generateHealthId = () => {
+        const prefix = 'DH';
+        const timestamp = new Date().getTime().toString().slice(-8);
+        const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        return `${prefix}${timestamp}${random}`;
     };
     
-    // Add verification method
-    const verificationMethod = document.querySelector('input[name="verificationType"]:checked').value;
-    formData.verificationMethod = verificationMethod;
+    const bloodGroup = document.getElementById('bloodType').value;
+    const allergiesText = document.getElementById('allergies').value;
+    const chronicConditionsText = document.getElementById('preExistingConditions').value;
     
-    if (verificationMethod === 'govtId') {
-        formData.govtId = {
-            type: document.getElementById('idType').value,
-            number: document.getElementById('idNumber').value
-        };
+    // Parse allergies into array
+    const allergies = allergiesText ? allergiesText.split(',').map(item => item.trim()) : [];
+    
+    // Parse chronic conditions into array
+    const chronicConditions = chronicConditionsText ? chronicConditionsText.split(',').map(item => item.trim()) : [];
+    
+    // Format for registration request that matches the DB schema
+    const formData = {
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+        userType: 'patient',
+        healthId: generateHealthId(),
+        name: document.getElementById('fullName').value,
+        dateOfBirth: document.getElementById('dob').value,
+        gender: document.querySelector('input[name="gender"]:checked').value,
+        contactNumber: document.getElementById('phone').value,
+        bloodGroup: bloodGroup || undefined,
+        address: {
+            street: document.getElementById('street').value,
+            city: document.getElementById('city').value,
+            state: document.getElementById('state').value,
+            postalCode: document.getElementById('pincode').value,
+            country: document.getElementById('country').value
+        },
+        emergencyContact: {
+            name: document.getElementById('emergencyName').value || "",
+            relationship: document.getElementById('emergencyRelation').value || "",
+            phone: document.getElementById('emergencyPhone').value || ""
+        },
+        allergies: allergies,
+        chronicConditions: chronicConditions
+    };
+    
+    // Add height and weight if provided
+    const height = document.getElementById('height').value;
+    const weight = document.getElementById('weight').value;
+    
+    if (height && !isNaN(parseInt(height))) {
+        formData.height = parseInt(height);
+    }
+    
+    if (weight && !isNaN(parseInt(weight))) {
+        formData.weight = parseInt(weight);
     }
     
     return formData;

@@ -14,7 +14,6 @@
                 <h1>Dhanvantri</h1>
                 <span class="tagline">Healthcare Platform</span>
             </div>
-            <a href="../index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Home</a>
         </div>
         
         <div class="registration-section">
@@ -70,11 +69,6 @@
                         </div>
                     </div>
                     
-                    <div class="form-group checkbox-group">
-                        <input type="checkbox" id="termsAgreement" name="termsAgreement" required>
-                        <label for="termsAgreement">I agree to the <a href="#" class="terms-link">Terms and Conditions</a> and <a href="#" class="privacy-link">Privacy Policy</a></label>
-                    </div>
-                    
                     <div class="form-buttons">
                         <button type="button" class="next-step" data-next="2">Next</button>
                     </div>
@@ -88,32 +82,6 @@
                         <div class="input-with-icon">
                             <i class="fas fa-phone"></i>
                             <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="dob">Date of Birth</label>
-                        <div class="input-with-icon">
-                            <i class="fas fa-calendar"></i>
-                            <input type="date" id="dob" name="dob" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group radio-group">
-                        <label>Gender</label>
-                        <div class="radio-options">
-                            <div class="radio-option">
-                                <input type="radio" id="male" name="gender" value="male" required>
-                                <label for="male">Male</label>
-                            </div>
-                            <div class="radio-option">
-                                <input type="radio" id="female" name="gender" value="female">
-                                <label for="female">Female</label>
-                            </div>
-                            <div class="radio-option">
-                                <input type="radio" id="other" name="gender" value="other">
-                                <label for="other">Other</label>
-                            </div>
                         </div>
                     </div>
                     
@@ -156,7 +124,6 @@
                 <!-- Step 3: Professional Information -->
                 <div class="form-step" data-step="3">
                     <h3>Professional Information</h3>
-                    <p class="section-note">Details about your medical practice and qualifications</p>
                     
                     <div class="form-group">
                         <label for="medicalRegistrationNumber">Medical Registration Number</label>
@@ -183,9 +150,11 @@
                         </select>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="otherCouncil" id="otherCouncilLabel" class="hidden">Specify Medical Council</label>
-                        <input type="text" id="otherCouncil" name="otherCouncil" placeholder="Enter medical council name" class="hidden">
+                    <div id="otherCouncilField" class="hidden">
+                        <div class="form-group">
+                            <label for="otherCouncil">Specify Medical Council</label>
+                            <input type="text" id="otherCouncil" name="otherCouncil" placeholder="Enter medical council name">
+                        </div>
                     </div>
                     
                     <div class="form-group">
@@ -211,14 +180,16 @@
                         </select>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="otherSpecialization" id="otherSpecializationLabel" class="hidden">Specify Specialization</label>
-                        <input type="text" id="otherSpecialization" name="otherSpecialization" placeholder="Enter specialization" class="hidden">
+                    <div id="otherSpecializationField" class="hidden">
+                        <div class="form-group">
+                            <label for="otherSpecialization">Specify Specialization</label>
+                            <input type="text" id="otherSpecialization" name="otherSpecialization" placeholder="Enter specialization">
+                        </div>
                     </div>
                     
                     <div class="form-group">
                         <label for="medicalQualifications">Medical Qualifications</label>
-                        <textarea id="medicalQualifications" name="medicalQualifications" placeholder="Enter your medical qualifications (e.g., MBBS - AIIMS 2010, MD Internal Medicine - PGIMER 2015)" required></textarea>
+                        <textarea id="medicalQualifications" name="medicalQualifications" placeholder="Enter your medical qualifications (comma separated, e.g., MBBS, MD Internal Medicine, DNB)" required></textarea>
                     </div>
                     
                     <div class="form-group">
@@ -226,14 +197,26 @@
                         <input type="number" id="yearsOfExperience" name="yearsOfExperience" min="0" placeholder="Enter years of experience" required>
                     </div>
                     
-                    <div class="form-group checkbox-group">
-                        <input type="checkbox" id="hospitalAffiliation" name="hospitalAffiliation">
-                        <label for="hospitalAffiliation">I am affiliated with a hospital registered on Dhanvantri</label>
+                    <div class="form-group">
+                        <label for="consultationFee">Consultation Fee (₹)</label>
+                        <input type="number" id="consultationFee" name="consultationFee" min="0" placeholder="Enter your consultation fee" required>
                     </div>
                     
-                    <div class="form-group" id="hospitalIdGroup">
-                        <label for="hospitalId">Hospital ID</label>
-                        <input type="text" id="hospitalId" name="hospitalId" placeholder="Enter hospital's Dhanvantri ID">
+                    <div class="form-group">
+                        <label for="hospitalAffiliation">I am affiliated with a hospital</label>
+                        <input type="checkbox" id="hospitalAffiliation" name="hospitalAffiliation">
+                    </div>
+                    
+                    <div id="hospitalDetailsField" class="hidden">
+                        <div class="form-group">
+                            <label for="hospitalId">Hospital ID</label>
+                            <input type="text" id="hospitalId" name="hospitalId" placeholder="Enter hospital ID (if known)">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="hospitalName">Hospital Name</label>
+                            <input type="text" id="hospitalName" name="hospitalName" placeholder="Enter hospital name">
+                        </div>
                     </div>
                     
                     <div class="form-buttons">
@@ -242,50 +225,28 @@
                     </div>
                 </div>
                 
-                <!-- Step 4: Verify & Submit -->
+                <!-- Step 4: Terms & Submit -->
                 <div class="form-step" data-step="4">
-                    <h3>Verify & Submit</h3>
-                    <p class="section-note">Please verify your credentials to complete registration</p>
+                    <h3>Terms & Submit</h3>
                     
-                    <div class="form-group">
-                        <label>Upload Medical Registration Certificate</label>
-                        <div class="file-upload">
-                            <input type="file" id="registrationCertificate" name="registrationCertificate" accept="image/*,.pdf" required>
-                            <div class="upload-placeholder">
-                                <i class="fas fa-upload"></i>
-                                <span>Click to select file or drag and drop</span>
-                            </div>
-                        </div>
-                        <p class="file-note">Supported formats: JPG, PNG, PDF (Max 5MB)</p>
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="termsConsent" name="termsConsent" required>
+                        <label for="termsConsent">I agree to the <a href="#" class="terms-link">Terms and Conditions</a></label>
                     </div>
                     
-                    <div class="form-group">
-                        <label>Upload Identity Proof</label>
-                        <div class="file-upload">
-                            <input type="file" id="identityProof" name="identityProof" accept="image/*,.pdf" required>
-                            <div class="upload-placeholder">
-                                <i class="fas fa-upload"></i>
-                                <span>Click to select file or drag and drop</span>
-                            </div>
-                        </div>
-                        <p class="file-note">Upload government-issued ID (Aadhar, PAN, Passport, etc.)</p>
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="privacyConsent" name="privacyConsent" required>
+                        <label for="privacyConsent">I agree to the <a href="#" class="privacy-link">Privacy Policy</a></label>
                     </div>
                     
-                    <div class="form-group checkbox-group consent-checkboxes">
-                        <div class="consent-item">
-                            <input type="checkbox" id="profileConsent" name="profileConsent" required>
-                            <label for="profileConsent">I consent to my professional profile being visible to patients on the platform</label>
-                        </div>
-                        
-                        <div class="consent-item">
-                            <input type="checkbox" id="dataConsent" name="dataConsent" required>
-                            <label for="dataConsent">I consent to the storage and processing of my information as per the <a href="#">Privacy Policy</a></label>
-                        </div>
-                        
-                        <div class="consent-item">
-                            <input type="checkbox" id="practiceConsent" name="practiceConsent" required>
-                            <label for="practiceConsent">I confirm that I am licensed to practice medicine and all information provided is accurate</label>
-                        </div>
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="dataConsent" name="dataConsent" required>
+                        <label for="dataConsent">I consent to the processing of my personal and professional data</label>
+                    </div>
+                    
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="credentialsConsent" name="credentialsConsent" required>
+                        <label for="credentialsConsent">I certify that all credentials provided are accurate and valid</label>
                     </div>
                     
                     <div class="form-buttons">
@@ -294,10 +255,6 @@
                     </div>
                 </div>
             </form>
-            
-            <div class="login-link">
-                Already have an account? <a href="../login/">Log In Here</a>
-            </div>
         </div>
     </div>
     
