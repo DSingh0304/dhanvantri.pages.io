@@ -1056,4 +1056,81 @@ img {
     .newsletter-form button {
         border-radius: var(--border-radius);
     }
+}
+
+/* Registration Banner */
+.registration-banner {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 60px 0;
+    margin: 80px 0 0;
+    position: relative;
+}
+
+.registration-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(45deg, rgba(0, 47, 108, 0.7), rgba(25, 118, 210, 0.3));
+    z-index: 1;
+}
+
+.banner-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.banner-content h2 {
+    font-size: 2.2rem;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.banner-content p {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    opacity: 0.9;
+}
+
+.banner-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.banner-buttons .btn-secondary {
+    background-color: transparent;
+    border: 2px solid var(--white);
+    color: var(--white);
+}
+
+.banner-buttons .btn-secondary:hover {
+    background-color: var(--white);
+    color: var(--primary-color);
+}
+
+@media (max-width: 576px) {
+    .registration-banner {
+        padding: 40px 0;
+    }
+    
+    .banner-content h2 {
+        font-size: 1.8rem;
+    }
+    
+    .banner-buttons {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .banner-buttons .btn {
+        width: 100%;
+    }
 } 
