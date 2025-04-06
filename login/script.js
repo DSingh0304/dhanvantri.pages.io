@@ -106,6 +106,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Store auth token in localStorage
                 localStorage.setItem('authToken', data.token);
                 
+                // Store refresh token if available
+                if (data.refreshToken) {
+                    localStorage.setItem('refreshToken', data.refreshToken);
+                }
+                
                 // Store user info
                 const storage = rememberMe ? localStorage : sessionStorage;
                 
@@ -116,7 +121,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     const userInfo = {
                         email: email,
                         userType: userType,
-                        isLoggedIn: true
+                        isLoggedIn: true,
+                        lastLogin: new Date().toISOString()
                     };
                     storage.setItem('userInfo', JSON.stringify(userInfo));
                     
@@ -130,18 +136,35 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
+                // Extract user data
                 const userInfo = {
                     email: email,
                     userType: data.user.userType || userType, // Fallback to form userType if API doesn't provide it
                     userId: data.user._id || null,
                     name: data.user.name || email.split('@')[0], // Use first part of email as name if not provided
-                    isLoggedIn: true
+                    isLoggedIn: true,
+                    lastLogin: new Date().toISOString()
                 };
                 
+                // Store complete user data for dashboard
+                localStorage.setItem('userData', JSON.stringify(data.user));
+                
+                // Store basic user info
                 storage.setItem('userInfo', JSON.stringify(userInfo));
                 
                 // Show success message
                 showMessage('Login successful! Redirecting...', 'success');
+                
+                // If user is a patient, fetch complete profile data
+                if (userInfo.userType === 'patient') {
+                    try {
+                        // Fetch patient profile data
+                        await fetchPatientProfile(data.token);
+                    } catch (error) {
+                        console.error('Error fetching patient profile:', error);
+                        // Continue with redirection even if profile fetch fails
+                    }
+                }
                 
                 // Redirect to appropriate dashboard
                 setTimeout(() => {
@@ -315,6 +338,29 @@ document.addEventListener('DOMContentLoaded', function() {
             if (authToken && userInfo && userInfo.isLoggedIn) {
                 // Provide a fallback if userType is missing
                 const userType = userInfo.userType || 'patient';
+                
+                // Check if we have the complete user data for dashboard
+                const userData = localStorage.getItem('userData');
+                if (!userData && userType === 'patient') {
+                    // We have a token but no user data, try to fetch it
+                    console.log('User is logged in but userData is missing, fetching profile...');
+                    
+                    // Async function to fetch missing data
+                    (async () => {
+                        try {
+                            await fetchPatientProfile(authToken);
+                        } catch (error) {
+                            console.error('Failed to fetch profile data during login check:', error);
+                            // Continue with redirect even if fetch fails
+                        } finally {
+                            // Redirect to dashboard regardless of fetch outcome
+                            redirectToDashboard(userType);
+                        }
+                    })();
+                    
+                    return; // Exit early since we're handling redirect in the async function
+                }
+                
                 // Redirect to dashboard
                 redirectToDashboard(userType);
             }
@@ -325,4 +371,38 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check login status on page load
     checkLoginStatus();
+    
+    /**
+     * Fetch complete patient profile data
+     */
+    async function fetchPatientProfile(token) {
+        try {
+            const response = await fetch('https://api.ysinghc.me/api/v1/patients/profile', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch patient profile');
+            }
+            
+            const profileData = await response.json();
+            
+            // Check if we have data and update localStorage
+            if (profileData) {
+                // Handle both response formats (with or without user wrapper)
+                const userData = profileData.user || profileData;
+                
+                // Store the complete profile data
+                localStorage.setItem('userData', JSON.stringify(userData));
+                console.log('Patient profile data stored successfully');
+            }
+        } catch (error) {
+            console.error('Error fetching patient profile:', error);
+            // Don't block login process if profile fetch fails
+        }
+    }
 }); 

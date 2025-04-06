@@ -1,11 +1,10 @@
 // API Configuration
-const API_BASE_URL = 'https://api.ysinghc.me/v1';
+const API_BASE_URL = 'https://api.ysinghc.me/api/v1';
 let authToken = localStorage.getItem('authToken');
 
 // API Request helper
 async function apiRequest(endpoint, method = 'GET', data = null) {
-    const apiUrl = 'https://api.ysinghc.me/v1';
-    const url = `${apiUrl}${endpoint}`;
+    const url = `${API_BASE_URL}${endpoint}`;
     
     try {
         const options = {
@@ -75,7 +74,7 @@ async function refreshToken() {
     }
     
     try {
-        const response = await fetch('https://api.ysinghc.me/v1/auth/refresh', {
+        const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -114,7 +113,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     initEventListeners();
     initSearch();
     initAppointmentForm();
-    initEmergencyCard();
     
     // Show loading indicator
     const loadingOverlay = document.createElement('div');
@@ -143,6 +141,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Initialize notifications after user data is loaded
         await initNotifications();
+        
+        // Initialize emergency card after user data is loaded
+        await initEmergencyCard();
         
         // Show dashboard content
         document.querySelector('.loading-overlay')?.remove();
@@ -880,18 +881,36 @@ function closeModal(modalId) {
  */
 async function fetchUserData() {
     try {
-        // Fetch user profile data
-        const userData = await apiRequest('/patients/profile');
+        // Get user info from local storage to determine userType
+        const userInfo = JSON.parse(localStorage.getItem('userInfo') || sessionStorage.getItem('userInfo') || '{}');
+        
+        // Determine the correct endpoint based on user type
+        let userData;
+        
+        if (userInfo.userType === 'patient') {
+            // Fetch patient profile data
+            userData = await apiRequest('/patients/profile');
+        } else {
+            // Fallback to generic profile endpoint if userType is undefined or not patient
+            userData = await apiRequest('/auth/profile');
+        }
         
         if (!userData) {
             console.error('Failed to fetch user data');
             return null;
         }
         
-        // Update UI with user data
-        updateUserProfile(userData);
+        // For backward compatibility, check if userData has a nested "user" property
+        // Some API endpoints return { user: {...} } while others return the user data directly
+        const profileData = userData.user || userData;
         
-        return userData;
+        // Update UI with user data
+        updateUserProfile(profileData);
+        
+        // Store user data for later use
+        localStorage.setItem('userData', JSON.stringify(profileData));
+        
+        return profileData;
     } catch (error) {
         console.error('Error fetching user data:', error);
         showNotification('Failed to load your profile data', 'error');
@@ -987,16 +1006,25 @@ async function logoutUser(force = false) {
         try {
             showNotification('Logging you out...', 'info');
             
-            // Call logout API to invalidate token
-            await apiRequest('/auth/logout', 'POST');
+            // Try to call logout API to invalidate token on server
+            await apiRequest('/auth/logout', 'POST')
+                .catch(error => {
+                    console.warn('Logout API call failed:', error);
+                    // Continue with client-side logout even if API call fails
+                });
         } catch (error) {
             console.error('Logout error:', error);
+            // Continue with local logout even if there was an error
         } finally {
             // Clear all auth data
             localStorage.removeItem('authToken');
             localStorage.removeItem('refreshToken');
+            localStorage.removeItem('userInfo');
             localStorage.removeItem('userData');
-            sessionStorage.clear();
+            
+            // Clear session storage as well
+            sessionStorage.removeItem('userInfo');
+            sessionStorage.removeItem('userData');
             
             // Redirect to login page
             setTimeout(() => {
@@ -1199,80 +1227,118 @@ async function initEmergencyCard() {
     const downloadBtn = document.querySelector('#downloadCard');
     const accessLogsTable = document.querySelector('.access-logs-table tbody');
     
-    // Fetch emergency card data
-    const cardData = await apiRequest('/emergency-card');
-    
-    if (!cardData) {
-        // Create a new emergency card if one doesn't exist
-        const newCard = await apiRequest('/emergency-card', 'POST');
-        if (newCard) {
-            updateEmergencyCardUI(newCard);
-            showNotification('Emergency card created successfully', 'success');
-        } else {
-            showNotification('Failed to create emergency card', 'error');
-        }
-    } else {
-        // Update UI with existing card data
-        updateEmergencyCardUI(cardData);
-    }
-    
-    // Regenerate card handler
-    if (regenerateBtn) {
-        regenerateBtn.addEventListener('click', async function() {
-            if (confirm('Are you sure you want to regenerate your emergency card? This will invalidate the current QR code.')) {
-                const newCard = await apiRequest('/emergency-card/regenerate', 'POST');
+    try {
+        // Fetch emergency card data
+        const cardData = await apiRequest('/emergency-card');
+        
+        if (!cardData || Object.keys(cardData).length === 0) {
+            // Card doesn't exist, try to create a new one
+            try {
+                showNotification('Creating your emergency card...', 'info');
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                
+                // Prepare payload with user data if available
+                const payload = {};
+                if (userData.emergencyContact) {
+                    payload.emergencyContact = userData.emergencyContact;
+                }
+                if (userData.allergies) {
+                    payload.allergies = userData.allergies;
+                }
+                if (userData.chronicConditions) {
+                    payload.medicalConditions = userData.chronicConditions;
+                }
+                
+                const newCard = await apiRequest('/emergency-card', 'POST', payload);
                 if (newCard) {
                     updateEmergencyCardUI(newCard);
-                    showNotification('Emergency card regenerated successfully', 'success');
+                    showNotification('Emergency card created successfully', 'success');
                 } else {
-                    showNotification('Failed to regenerate emergency card', 'error');
+                    showNotification('Failed to create emergency card', 'error');
                 }
+            } catch (createError) {
+                console.error('Error creating emergency card:', createError);
+                showNotification('Unable to create emergency card', 'error');
             }
-        });
-    }
-    
-    // Toggle card status handler
-    if (toggleCardBtn) {
-        toggleCardBtn.addEventListener('change', async function() {
-            const isActive = this.checked;
-            const status = await apiRequest('/emergency-card/status', 'PATCH', { isActive });
-            
-            if (status) {
-                // Update UI
-                if (cardStatusEl) {
-                    cardStatusEl.textContent = isActive ? 'ACTIVE' : 'INACTIVE';
-                    cardStatusEl.className = `status ${isActive ? 'active' : 'inactive'}`;
+        } else {
+            // Update UI with existing card data
+            updateEmergencyCardUI(cardData);
+        }
+        
+        // Regenerate card handler
+        if (regenerateBtn) {
+            regenerateBtn.addEventListener('click', async function() {
+                if (confirm('Are you sure you want to regenerate your emergency card? This will invalidate the current QR code.')) {
+                    try {
+                        const newCard = await apiRequest('/emergency-card/regenerate', 'POST');
+                        if (newCard) {
+                            updateEmergencyCardUI(newCard);
+                            showNotification('Emergency card regenerated successfully', 'success');
+                        } else {
+                            showNotification('Failed to regenerate emergency card', 'error');
+                        }
+                    } catch (regenerateError) {
+                        console.error('Error regenerating emergency card:', regenerateError);
+                        showNotification('Failed to regenerate emergency card', 'error');
+                    }
                 }
-                
-                // Update status text
-                const statusTextEl = document.querySelector('#cardActiveStatus');
-                if (statusTextEl) {
-                    statusTextEl.textContent = isActive ? 'Active' : 'Inactive';
+            });
+        }
+        
+        // Toggle card status handler
+        if (toggleCardBtn) {
+            toggleCardBtn.addEventListener('change', async function() {
+                const isActive = this.checked;
+                try {
+                    const status = await apiRequest('/emergency-card/status', 'PATCH', { isActive });
+                    
+                    if (status) {
+                        // Update UI
+                        if (cardStatusEl) {
+                            cardStatusEl.textContent = isActive ? 'ACTIVE' : 'INACTIVE';
+                            cardStatusEl.className = `status ${isActive ? 'active' : 'inactive'}`;
+                        }
+                        
+                        // Update status text
+                        const statusTextEl = document.querySelector('#cardActiveStatus');
+                        if (statusTextEl) {
+                            statusTextEl.textContent = isActive ? 'Active' : 'Inactive';
+                        }
+                        
+                        showNotification(`Emergency card ${isActive ? 'activated' : 'deactivated'} successfully`, 'success');
+                    } else {
+                        // Revert toggle if failed
+                        this.checked = !isActive;
+                        showNotification('Failed to update emergency card status', 'error');
+                    }
+                } catch (statusError) {
+                    console.error('Error updating emergency card status:', statusError);
+                    this.checked = !isActive; // Revert toggle
+                    showNotification('Failed to update emergency card status', 'error');
                 }
+            });
+        }
+        
+        // Download card handler
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', function() {
+                showNotification('Emergency card PDF is being generated...', 'info');
                 
-                showNotification(`Emergency card ${isActive ? 'activated' : 'deactivated'} successfully`, 'success');
-            } else {
-                // Revert toggle if failed
-                this.checked = !isActive;
-                showNotification('Failed to update emergency card status', 'error');
-            }
-        });
+                // In a real implementation, this would download a PDF
+                setTimeout(() => {
+                    showNotification('Emergency card downloaded successfully', 'success');
+                }, 1500);
+            });
+        }
+        
+        // Load access logs
+        if (accessLogsTable) {
+            await loadAccessLogs(accessLogsTable);
+        }
+    } catch (error) {
+        console.error('Error initializing emergency card:', error);
+        showNotification('Failed to load emergency card', 'error');
     }
-    
-    // Download card handler
-    if (downloadBtn) {
-        downloadBtn.addEventListener('click', function() {
-            showNotification('Emergency card PDF is being generated...', 'info');
-            
-            // In a real implementation, this would download a PDF
-            setTimeout(() => {
-                showNotification('Emergency card downloaded successfully', 'success');
-            }, 1500);
-        });
-    }
-    
-    // Load access logs
-    await loadAccessLogs(accessLogsTable);
 }
 
 /**
@@ -1357,9 +1423,14 @@ async function loadAccessLogs(tableElement) {
  * Fetch patient appointments
  */
 async function fetchAppointments() {
-    const appointments = await apiRequest('/appointments');
-    
-    if (appointments && appointments.length > 0) {
+    try {
+        const appointments = await apiRequest('/appointments');
+        
+        if (!appointments || !Array.isArray(appointments)) {
+            console.warn('No appointments data received or invalid format');
+            return [];
+        }
+        
         // Update dashboard upcoming appointments
         const appointmentList = document.querySelector('.appointment-list');
         if (appointmentList) {
@@ -1368,31 +1439,40 @@ async function fetchAppointments() {
             // Sort appointments by date
             appointments.sort((a, b) => new Date(a.date) - new Date(b.date));
             
-            // Show only future appointments, limited to 2 for the dashboard
+            // Show only future appointments, limited to 3 for the dashboard
             const upcomingAppointments = appointments
                 .filter(apt => new Date(apt.date) >= new Date())
-                .slice(0, 2);
+                .slice(0, 3);
             
             if (upcomingAppointments.length === 0) {
                 appointmentList.innerHTML = '<div class="no-records">No upcoming appointments</div>';
             } else {
                 upcomingAppointments.forEach(appointment => {
-                    const date = new Date(appointment.date);
+                    const appointmentDate = new Date(appointment.date);
+                    const formattedMonth = appointmentDate.toLocaleString('default', { month: 'short' });
+                    const formattedDay = appointmentDate.getDate();
+                    
                     const appointmentItem = document.createElement('div');
                     appointmentItem.className = 'appointment-item';
+                    
+                    // Safely access nested properties
+                    const doctorName = appointment.doctorName || 'Doctor';
+                    const specialization = appointment.specialization || appointment.doctorSpecialization || 'Specialist';
+                    const appointmentType = appointment.type || appointment.appointmentType || 'Consultation';
+                    const hospitalName = appointment.hospitalName || appointment.location || 'Hospital';
                     
                     appointmentItem.innerHTML = `
                         <div class="appointment-date">
                             <div class="date-display">
-                                <span class="month">${date.toLocaleString('default', { month: 'short' })}</span>
-                                <span class="day">${date.getDate()}</span>
+                                <span class="month">${formattedMonth}</span>
+                                <span class="day">${formattedDay}</span>
                             </div>
-                            <span class="time">${appointment.time}</span>
+                            <span class="time">${appointment.time || '00:00'}</span>
                         </div>
                         <div class="appointment-details">
-                            <h4>${appointment.doctorName}</h4>
-                            <p>${appointment.specialization} - ${appointment.type}</p>
-                            <p class="location"><i class="fas fa-map-marker-alt"></i> ${appointment.hospitalName}</p>
+                            <h4>${doctorName}</h4>
+                            <p>${specialization} - ${appointmentType}</p>
+                            <p class="location"><i class="fas fa-map-marker-alt"></i> ${hospitalName}</p>
                         </div>
                         <div class="appointment-actions">
                             <button class="btn btn-sm btn-outline" onclick="handleAppointment('reschedule', '${appointment._id}')">Reschedule</button>
@@ -1414,16 +1494,21 @@ async function fetchAppointments() {
                 const appointmentDetail = document.querySelector('.stat-card:nth-child(1) .stat-detail');
                 if (appointmentDetail && futureAppointments.length > 0) {
                     const nextAppointment = futureAppointments[0];
-                    const date = new Date(nextAppointment.date);
-                    appointmentDetail.textContent = `Next: Dr. ${nextAppointment.doctorName.split(' ').pop()} on ${date.toLocaleString('default', { month: 'short' })} ${date.getDate()}`;
+                    const nextDate = new Date(nextAppointment.date);
+                    const doctorLastName = (nextAppointment.doctorName || 'Doctor').split(' ').pop();
+                    appointmentDetail.textContent = `Next: Dr. ${doctorLastName} on ${nextDate.toLocaleString('default', { month: 'short' })} ${nextDate.getDate()}`;
                 } else if (appointmentDetail) {
                     appointmentDetail.textContent = 'No upcoming appointments';
                 }
             }
         }
+        
+        return appointments;
+    } catch (error) {
+        console.error('Error fetching appointments:', error);
+        showNotification('Failed to load appointments', 'error');
+        return [];
     }
-    
-    return appointments;
 }
 
 /**
@@ -1494,32 +1579,40 @@ async function saveAppointment(form) {
         return false;
     }
     
+    // Check if date is in the future
+    const appointmentDate = new Date(`${date}T${time}`);
+    if (appointmentDate <= new Date()) {
+        showNotification('Appointment date must be in the future', 'error');
+        return false;
+    }
+    
     // Get form action and appointment ID
     const action = form.getAttribute('data-action') || 'create';
     const appointmentId = form.getAttribute('data-appointment-id');
+    
+    // Prepare the appointment payload
+    const appointmentData = {
+        doctorId,
+        date,
+        time,
+        reason: reason || 'Routine checkup'
+    };
     
     try {
         let result;
         
         if (action === 'reschedule' && appointmentId) {
             // Update existing appointment
-            result = await apiRequest(`/appointments/${appointmentId}`, 'PUT', {
-                date,
-                time,
-                reason
-            });
+            showNotification('Updating your appointment...', 'info');
+            result = await apiRequest(`/appointments/${appointmentId}`, 'PUT', appointmentData);
             
             if (result) {
                 showNotification('Appointment rescheduled successfully!', 'success');
             }
         } else {
             // Create new appointment
-            result = await apiRequest('/appointments', 'POST', {
-                doctorId,
-                date,
-                time,
-                reason
-            });
+            showNotification('Scheduling your appointment...', 'info');
+            result = await apiRequest('/appointments', 'POST', appointmentData);
             
             if (result) {
                 showNotification('Appointment scheduled successfully!', 'success');
@@ -1529,11 +1622,12 @@ async function saveAppointment(form) {
         // Close modal and refresh data
         closeModal('appointmentModal');
         form.reset();
-        fetchAppointments();
+        await fetchAppointments();
         
         return true;
     } catch (error) {
         console.error('Appointment save error:', error);
+        showNotification('Failed to save appointment. Please try again.', 'error');
         return false;
     }
 }
@@ -1563,83 +1657,87 @@ function initAppointmentForm() {
 }
 
 /**
- * Update medications list on dashboard
+ * Update medications list with prescription data
  */
 function updateMedicationsList(prescriptions) {
-    const medicationList = document.querySelector('.medication-list');
-    if (!medicationList) return;
+    const medicationsList = document.querySelector('.medications-list');
+    if (!medicationsList) return;
     
-    // Clear existing items
-    medicationList.innerHTML = '';
+    // Clear list
+    medicationsList.innerHTML = '';
     
-    // Get active medications (not expired)
-    const now = new Date();
-    const activeMedications = prescriptions
-        .filter(prescription => {
-            const endDate = prescription.endDate ? new Date(prescription.endDate) : null;
-            return !endDate || endDate > now;
-        })
-        .flatMap(prescription => prescription.medications || []);
-    
-    // Update medication count in stats
-    const medicationCount = document.querySelector('.stat-card:nth-child(2) .stat-value');
-    if (medicationCount) {
-        medicationCount.textContent = activeMedications.length;
+    if (!prescriptions || !Array.isArray(prescriptions) || prescriptions.length === 0) {
+        medicationsList.innerHTML = '<div class="no-records">No active medications</div>';
+        return;
     }
     
-    // Update last updated date
-    const medicationDetail = document.querySelector('.stat-card:nth-child(2) .stat-detail');
-    if (medicationDetail && prescriptions.length > 0) {
-        // Get the most recent prescription
-        const latestPrescription = prescriptions.sort((a, b) => 
-            new Date(b.createdAt) - new Date(a.createdAt)
-        )[0];
+    try {
+        // Sort prescriptions by date (newest first)
+        prescriptions.sort((a, b) => new Date(b.prescribedDate) - new Date(a.prescribedDate));
         
-        const createdDate = new Date(latestPrescription.createdAt);
-        const timeDiff = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
+        // Only display active prescriptions
+        const activePrescriptions = prescriptions.filter(p => 
+            p.status === 'active' || 
+            (p.endDate && new Date(p.endDate) >= new Date())
+        );
         
-        if (timeDiff === 0) {
-            medicationDetail.textContent = 'Last updated: Today';
-        } else if (timeDiff === 1) {
-            medicationDetail.textContent = 'Last updated: Yesterday';
-        } else if (timeDiff < 7) {
-            medicationDetail.textContent = `Last updated: ${timeDiff} days ago`;
-        } else if (timeDiff < 30) {
-            medicationDetail.textContent = `Last updated: ${Math.floor(timeDiff / 7)} week(s) ago`;
-        } else {
-            medicationDetail.textContent = `Last updated: ${Math.floor(timeDiff / 30)} month(s) ago`;
+        if (activePrescriptions.length === 0) {
+            medicationsList.innerHTML = '<div class="no-records">No active medications</div>';
+            return;
         }
-    }
-    
-    // Display medications (limit to 2 for dashboard)
-    if (activeMedications.length === 0) {
-        medicationList.innerHTML = '<div class="no-records">No active medications</div>';
-    } else {
-        activeMedications.slice(0, 2).forEach(medication => {
-            const item = document.createElement('div');
-            item.className = 'medication-item';
+        
+        // Update the stat card count
+        const medicationCount = document.querySelector('.stat-card:nth-child(2) .stat-value');
+        if (medicationCount) {
+            medicationCount.textContent = activePrescriptions.length;
+        }
+        
+        // Add each medication to the list
+        activePrescriptions.forEach(prescription => {
+            const medicationItem = document.createElement('div');
+            medicationItem.className = 'medication-item';
             
-            // Determine icon based on medication form
-            let icon = 'pills';
-            if (medication.form === 'capsule') icon = 'capsules';
-            else if (medication.form === 'liquid') icon = 'flask';
-            else if (medication.form === 'injection') icon = 'syringe';
+            // Extract data safely with fallbacks
+            const medication = prescription.medication || {};
+            const medicationName = medication.name || prescription.medicationName || 'Medication';
+            const dosage = medication.dosage || prescription.dosage || '';
+            const frequency = medication.frequency || prescription.frequency || 'As needed';
+            const instructions = prescription.instructions || '';
+            const doctorName = prescription.doctorName || 'Your doctor';
             
-            item.innerHTML = `
-                <div class="medication-icon">
-                    <i class="fas fa-${icon}"></i>
+            // Format dates
+            const startDate = prescription.startDate ? new Date(prescription.startDate).toLocaleDateString() : 'N/A';
+            const endDate = prescription.endDate ? new Date(prescription.endDate).toLocaleDateString() : 'Ongoing';
+            
+            // Build medication item HTML
+            medicationItem.innerHTML = `
+                <div class="medication-info">
+                    <h4>${medicationName}</h4>
+                    <p class="dosage">${dosage} ${frequency}</p>
+                    <p class="instructions">${instructions}</p>
+                    <p class="prescription-details">
+                        <span>Prescribed by ${doctorName}</span>
+                        <span>Valid: ${startDate} to ${endDate}</span>
+                    </p>
                 </div>
-                <div class="medication-details">
-                    <h4>${medication.name} ${medication.dosage || ''}</h4>
-                    <p>${medication.instructions || 'Take as directed'}</p>
-                    <div class="medication-meta">
-                        <span><i class="far fa-calendar-alt"></i> Started: ${new Date(medication.startDate || prescription.createdAt).toLocaleDateString()}</span>
-                        <span><i class="fas fa-user-md"></i> Dr. ${medication.prescribedBy || 'Unknown'}</span>
-                    </div>
+                <div class="medication-actions">
+                    <button class="btn btn-sm btn-outline" onclick="showMedicationDetails('${prescription._id}')">
+                        <i class="fas fa-info-circle"></i> Details
+                    </button>
                 </div>
             `;
             
-            medicationList.appendChild(item);
+            medicationsList.appendChild(medicationItem);
         });
+        
+        // Add a global function to show medication details
+        window.showMedicationDetails = function(id) {
+            // This function would be implemented to show a modal with details
+            // For now, just show a notification
+            showNotification('Medication details functionality coming soon', 'info');
+        };
+    } catch (error) {
+        console.error('Error updating medications list:', error);
+        medicationsList.innerHTML = '<div class="error-message">Could not load medications list</div>';
     }
 } 
